@@ -1,0 +1,32 @@
+$primary-color: #81C408;
+$secondary-color: #f4f4f4;
+$text-color: #333;
+$header-bg: #333;
+$header-text-color: #fff;
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: $text-color;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+
+    h2 {
+        color: $primary-color;
+    }
+
+    p {
+        margin: 10px 0;
+    }
+
+    ul {
+        list-style: disc;
+        padding-left: 20px;
+    }
+}

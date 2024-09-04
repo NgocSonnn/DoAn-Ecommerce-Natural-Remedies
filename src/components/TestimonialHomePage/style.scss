@@ -1,0 +1,9 @@
+.slick-next::after,
+.slick-prev::after {
+    color: black !important;
+    border-block-width: 5px 0 !important;
+    border-inline-width: 5px 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-left: -5px !important;
+}
