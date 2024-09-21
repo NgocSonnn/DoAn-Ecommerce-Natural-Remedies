@@ -25,8 +25,25 @@
         }
     }
 
+    .form-item {
+        padding-bottom: 12px;
+    }
+
     .ant-input-affix-wrapper {
         font-size: 18px;
+    }
+
+    .ant-input-outlined:hover {
+        border-color: #81C408
+    }
+
+    .login-form-forgot span:hover {
+        color: #FFB524 !important;
+    }
+
+    :where(.css-dev-only-do-not-override-1gwfwyx).ant-btn-primary:not(:disabled):not(.ant-btn-disabled):hover {
+        background-color: #FFB524;
+        border: 1px solid #FFB524;
     }
 
     .ant-input-password {
@@ -65,5 +82,9 @@
             background-color: #40a9ff;
             border-color: #40a9ff;
         }
+    }
+
+    .login-form-forgot span:hover {
+        color: #40a9ff;
     }
 }

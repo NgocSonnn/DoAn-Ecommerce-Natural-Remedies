@@ -43,19 +43,27 @@ const HeroComponent = () => {
                             <div className="carousel-inner" role="listbox">
                                 <div className="carousel-item active rounded">
                                     <img src="/img/nam-linhchi-kho-donggoi-1.jpg" className="img-fluid w-100 h-100 bg-secondary rounded" alt="First slide" />
-                                    <a href="/#" className="btn px-4 py-2 text-white rounded">Dạng khô</a>
+                                    <a href='#tab-2' className="btn px-4 py-2 text-white rounded">Dạng khô</a>
                                 </div>
                                 <div className="carousel-item rounded">
-                                    <img src="/img/nam-linhchi-tuoi-3.jpg" className="img-fluid w-100 h-100 rounded" alt="Second slide" />
-                                    <a href="/#" className="btn px-4 py-2 text-white rounded">Dạng tươi</a>
+                                    <img src="/img/bot-san-day.jpg" className="img-fluid w-100 h-100 bg-secondary rounded" alt="Second slide" />
+                                    <a href='#tab-3' className="btn px-4 py-2 text-white rounded">Dạng bột</a>
                                 </div>
                                 <div className="carousel-item rounded">
-                                    <img src="/img/mat-ong-1.jpg" className="img-fluid w-100 h-100 rounded" alt="Second slide" />
-                                    <a href="/#" className="btn px-4 py-2 text-white rounded">Dạng tinh chất</a>
+                                    <img src="/img/vien-ha-thu-o.jpg" className="img-fluid w-100 h-100 bg-secondary rounded" alt="Third slide" />
+                                    <a href='#tab-4' className="btn px-4 py-2 text-white rounded">Dạng viên</a>
                                 </div>
                                 <div className="carousel-item rounded">
-                                    <img src="/img/ruou-ngam-sam-bo-chinh-1.jpg" className="img-fluid w-100 h-100 rounded" alt="Second slide" />
-                                    <a href="/#" className="btn px-4 py-2 text-white rounded">Dạng lỏng</a>
+                                    <img src="/img/nam-linhchi-tuoi-3.jpg" className="img-fluid w-100 h-100 rounded" alt="Fourth slide" />
+                                    <a href='#tab-12' className="btn px-4 py-2 text-white rounded">Dạng tươi</a>
+                                </div>
+                                <div className="carousel-item rounded">
+                                    <img src="/img/mat-ong-1.jpg" className="img-fluid w-100 h-100 rounded" alt="Fifth slide" />
+                                    <a href='#tab-14' className="btn px-4 py-2 text-white rounded">Dạng tinh chất</a>
+                                </div>
+                                <div className="carousel-item rounded">
+                                    <img src="/img/ruou-ngam-sam-bo-chinh-1.jpg" className="img-fluid w-100 h-100 rounded" alt="Sixth slide" />
+                                    <a href='#tab-13' className="btn px-4 py-2 text-white rounded">Dạng lỏng</a>
                                 </div>
                             </div>
                             <button className="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">

@@ -1,6 +1,19 @@
-import React from 'react'
+import { message } from 'antd'
+import React, { useState } from 'react'
 
 const ContactComponent = () => {
+
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [messageContent, setMessageContent] = useState('');
+
+    const handleSendFormFeedBack = (event) => {
+        event.preventDefault();
+        setName('');
+        setPhone('');
+        setMessageContent('');
+        message.success("Cảm ơn bạn đã để lại lời nhắn cho chúng tôi, chúng tôi sẽ sớm phản hồi lại với bạn trong thời gian sớm nhất!")
+    }
     return (
         <div className="container-fluid contact py-5">
             <div className="container py-5">
@@ -20,10 +33,13 @@ const ContactComponent = () => {
                             </div>
                         </div>
                         <div className="col-lg-7">
-                            <form action="" className="">
-                                <input type="text" className="w-100 form-control border-0 py-3 mb-4" placeholder="Tên của bạn" />
-                                <input type="number" className="w-100 form-control border-0 py-3 mb-4" placeholder="Nhập số điện thoại của bạn" />
-                                <textarea className="w-100 form-control border-0 mb-4" rows="5" cols="10" placeholder="Lời nhắn của bạn"></textarea>
+                            <form onSubmit={handleSendFormFeedBack}>
+                                <input type="text" className="w-100 form-control border-0 py-3 mb-4" placeholder="Tên của bạn" value={name}
+                                    onChange={(e) => setName(e.target.value)} />
+                                <input type="number" className="w-100 form-control border-0 py-3 mb-4" placeholder="Nhập số điện thoại của bạn" value={phone}
+                                    onChange={(e) => setPhone(e.target.value)} />
+                                <textarea className="w-100 form-control border-0 mb-4" rows="5" cols="10" placeholder="Lời nhắn của bạn" value={messageContent}
+                                    onChange={(e) => setMessageContent(e.target.value)} ></textarea>
                                 <button className="w-100 btn form-control border-secondary py-3 bg-white text-primary " type="submit">Gửi</button>
                             </form>
                         </div>

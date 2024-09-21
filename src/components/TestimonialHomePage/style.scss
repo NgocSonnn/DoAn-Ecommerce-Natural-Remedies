@@ -7,3 +7,29 @@
     height: 20px !important;
     margin-left: -5px !important;
 }
+
+.form-comment-wrapper {
+
+    input,
+    textarea,
+    button {
+        font-size: 16px;
+    }
+
+    .ant-input-outlined:hover {
+        border-color: #81C408
+    }
+
+    .btn-style {
+        color: #81c408;
+        font-weight: 600;
+        border-radius: 50rem;
+        border: 1px solid #ffb524;
+    }
+
+    .btn-style:hover {
+        background-color: #ffb524 !important;
+        color: white;
+    }
+
+}

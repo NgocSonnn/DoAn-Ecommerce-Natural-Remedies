@@ -80,7 +80,7 @@ const MainLayout = () => {
                 title = 'Thông tin khách hàng';
                 break;
             case ROUTES.CHANGEPASS_ACCOUNT_PAGE:
-                title = 'Thay đổi thông tin';
+                title = 'Thay đổi thông tin và mật khẩu';
                 break;
             case ROUTES.WISHLIST_PAGE:
                 title = 'Danh sách yêu thích';

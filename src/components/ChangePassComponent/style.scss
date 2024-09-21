@@ -1,0 +1,66 @@
+.changepass-container {
+    padding: 20px;
+    max-width: 700px;
+    margin: 0 auto;
+
+    h2 {
+        color: #81c408;
+        text-align: center;
+        padding-bottom: 30px;
+    }
+
+    .ant-input-outlined:hover {
+        border-color: #81C408
+    }
+
+    .ant-picker-outlined:hover {
+        border-color: #81C408
+    }
+
+    :where(.css-dev-only-do-not-override-1gwfwyx).ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
+        border-color: #81C408
+    }
+
+    &__form {
+
+        .ant-form-item {
+
+            label {
+                color: #81c408;
+                font-size: 18px;
+                min-width: 180px;
+                font-weight: bold;
+            }
+
+            input {
+                font-size: 18px;
+
+            }
+        }
+
+        .ant-form-item {
+            .ant-form-item-control-input-content {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+
+                button {
+                    background-color: #81c408;
+                    color: white;
+                    padding: 20px 40px;
+                    border-radius: 18px;
+
+                    span {
+                        font-size: 18px;
+                    }
+                }
+
+                button:hover {
+                    color: white;
+                    background-color: var(--bs-secondary);
+                    border: 1px solid var(--bs-secondary);
+                }
+            }
+        }
+    }
+}

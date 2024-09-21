@@ -12,7 +12,7 @@ const FeatureSection = () => {
                             </div>
                             <div className="featurs-content text-center">
                                 <h5>Giao hàng miễn phí</h5>
-                                <p className="mb-0">Áp dụng cho tất cả các đơn hàng</p>
+                                <p className="mb-0">Áp dụng miễn phí cho tất cả các đơn hàng.</p>
                             </div>
                         </div>
                     </div>
@@ -23,7 +23,7 @@ const FeatureSection = () => {
                             </div>
                             <div className="featurs-content text-center">
                                 <h5>Thanh toán an toàn</h5>
-                                <p className="mb-0">Cam kết bảo mật thông tin thanh toán</p>
+                                <p className="mb-0">Cam kết bảo mật thông tin thanh toán.</p>
                             </div>
                         </div>
                     </div>

@@ -1,14 +1,36 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import './style.scss'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../redux/features/user/userSlice';
+import { message } from 'antd';
+import { actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice';
+import { actClearCart } from '../../redux/features/cart/cartSlice';
 
 const HeaderComponent = () => {
     const cartItems = useSelector(state => state.carts.carts)
+    const wishListAll = useSelector(state => state.wishLists.wishListAll)
+    const isLogin = useSelector(state => state.user.isLogin);
+    const userInfo = useSelector(state => state.user.userInfo);
+    const dispatch = useDispatch();
+    const navigate = useNavigate()
     const cartItemCount = cartItems.length
 
-
+    const handleLogout = () => {
+        dispatch(logout());
+        message.success("Đăng xuất thành công!")
+        navigate(ROUTES.HOME_PAGE)
+        dispatch(actClearCart())
+        window.location.reload();
+    };
+    useEffect(() => {
+        dispatch(actFetchAllWishLists({
+            userId: userInfo.id
+        }))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    const wishListsCount = wishListAll.length
 
     return (
         <div className="container-fluid fixed-top">
@@ -35,16 +57,7 @@ const HeaderComponent = () => {
                         <div className="navbar-nav mx-auto">
                             <Link to={ROUTES.HOME_PAGE} className="nav-item nav-link" >Trang chủ</Link>
                             <Link to={ROUTES.SHOP_PAGE} className="nav-item nav-link">Sản phẩm</Link>
-                            <Link to={ROUTES.SHOP_DETAIL_PAGE} className="nav-item nav-link">Thông tin về sản phẩm</Link>
-                            <div className="nav-item dropdown">
-                                <a href="/#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">Trang</a>
-                                <div className="dropdown-menu m-0 bg-secondary rounded-0">
-                                    <Link to={ROUTES.CART_PAGE} className="dropdown-item">Giỏ hàng</Link>
-                                    <Link to={ROUTES.CHECKOUT_PAGE} className="dropdown-item">Thanh toán</Link>
-                                    <Link to={ROUTES.TESTIMONIAL_PAGE} className="dropdown-item">Nhận xét của khách hàng</Link>
-                                    <Link to={ROUTES.PAGE_404} className="dropdown-item">404 Page</Link>
-                                </div>
-                            </div>
+                            <Link to={ROUTES.TESTIMONIAL_PAGE} className="nav-item nav-link">Nhận xét của khách hàng</Link>
                             <Link to={ROUTES.CONTACT_PAGE} className="nav-item nav-link">Liên hệ</Link>
                         </div>
                         <div className="d-flex m-3 me-0">
@@ -53,9 +66,46 @@ const HeaderComponent = () => {
                                 <i className="fa fa-shopping-bag fa-2x"></i>
                                 <span className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style={{ top: "-5px", left: "15px", height: "20px", minWidth: "20px" }}>{cartItemCount}</span>
                             </Link>
-                            <Link to={ROUTES.LOGIN_PAGE} className="my-auto">
-                                <i className="fas fa-user fa-2x"></i>
+                            <Link to={ROUTES.WISHLIST_PAGE} className="position-relative me-4 my-auto">
+                                <i className="fa fa-heart fa-2x"></i>
+                                <span className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style={{ top: "-5px", left: "15px", height: "20px", minWidth: "20px" }}>{wishListsCount}</span>
                             </Link>
+                            <div className='user-container'>
+                                <div className="position-relative my-auto">
+                                    <button className="btn btn-link dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i className="fas fa-user fa-2x"></i>
+                                    </button>
+                                    {isLogin && (
+                                        <div className="user-greeting position-absolute">
+                                            <span>Xin chào, {userInfo?.fullName}</span>
+                                        </div>
+                                    )}
+                                    <ul className="dropdown-menu" aria-labelledby="userDropdown">
+                                        {isLogin ? (
+                                            <div className='user-dropdown'>
+                                                <li>
+                                                    <Link to={ROUTES.ACCOUNT_PAGE} className="dropdown-item">Thông tin cá nhân</Link>
+                                                </li>
+                                                <li>
+                                                    <Link to={ROUTES.HISTORYPURCHASE_ACCOUNT_PAGE} className="dropdown-item">Lịch sử mua hàng</Link>
+                                                </li>
+                                                <li>
+                                                    <button className="dropdown-item" onClick={handleLogout}>Đăng xuất</button>
+                                                </li>
+                                            </div>
+                                        ) : (
+                                            <div className='user-dropdown'>
+                                                <li>
+                                                    <Link className="dropdown-item" to={ROUTES.LOGIN_PAGE}>Đăng nhập</Link>
+                                                </li>
+                                                <li>
+                                                    <Link className="dropdown-item" to={ROUTES.REGISTER_PAGE}>Đăng ký</Link>
+                                                </li>
+                                            </div>
+                                        )}
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </nav>

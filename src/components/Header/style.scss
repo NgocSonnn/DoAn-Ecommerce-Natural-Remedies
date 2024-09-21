@@ -9,3 +9,54 @@
 .active-link {
     color: #679d06;
 }
+
+.user-container {
+
+
+    .user-greeting {
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 5px 10px;
+        font-size: 14px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        top: -36px;
+        left: 80px;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        position: absolute;
+        /* Để cho mũi tên được căn chỉnh đúng */
+    }
+
+    .user-greeting::after {
+        content: "";
+        position: absolute;
+        bottom: -19px;
+        left: 25%;
+        transform: translateX(-50%);
+        border-width: 10px;
+        border-style: solid;
+        border-top: 10px solid #fff;
+        border-right: 18px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 2px solid transparent;
+    }
+
+    .dropdown-menu {
+        padding: 8px;
+    }
+
+    .position-relative {
+        position: relative;
+    }
+
+    .user-dropdown {
+        li {
+            list-style: none;
+
+            a {
+                text-align: start;
+            }
+        }
+    }
+}

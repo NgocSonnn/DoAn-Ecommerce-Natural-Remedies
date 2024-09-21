@@ -19,3 +19,39 @@
 .product-name-style:hover {
     color: #679d06;
 }
+
+.form-comment-container {
+
+    input,
+    textarea,
+    button {
+        font-size: 16px;
+    }
+
+    .btn-style {
+        color: #81c408;
+        font-weight: 600;
+        border-radius: 50rem;
+        border: 1px solid #ffb524;
+    }
+
+    .btn-style:hover {
+        background-color: #ffb524 !important;
+        color: white;
+    }
+
+    .ant-input-outlined:hover {
+        border-color: #81C408
+    }
+}
+
+.comment-render {
+    .ant-pagination {
+        justify-content: end;
+    }
+
+    .btn-style-form {
+        display: flex;
+        justify-content: end;
+    }
+}

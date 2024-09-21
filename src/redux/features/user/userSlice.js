@@ -23,9 +23,11 @@ export const actCreateNewUser = createAsyncThunk("users,actCreateNewUser", async
             return thunkAPI.rejectWithValue("Số điện thoại này đã tồn tại!");
         } else {
             await userApis.createNewUser(formValue);
+            return formValue;
         }
     } catch (error) {
         console.log(error, "error actCreateNewUser");
+        return thunkAPI.rejectWithValue("Đã xảy ra lỗi khi tạo tài khoản");
     }
 })
 export const actLogin = createAsyncThunk(
@@ -36,12 +38,11 @@ export const actLogin = createAsyncThunk(
         const foundUser = users.find(
             (u) => u.phoneNumber === phoneNumber && u.password === password
         );
-        // delete foundUser.confirmPassword;
-
         if (foundUser) {
             thunkAPI.dispatch(loginSuccess(foundUser));
+            return foundUser;
         } else {
-            return thunkAPI.rejectWithValue("User or Password incorrect!");
+            return thunkAPI.rejectWithValue("Số điện thoại hoặc mật khẩu sai!");
         }
     }
 );
@@ -60,24 +61,20 @@ export const actFetchUserById = createAsyncThunk(
         return user;
     }
 );
-export const actUpdatePhoneNumberById = createAsyncThunk(
-    "users/actUpdatePhoneNumberById",
-    async ({ id, userUpdate }, thunkAPI) => {
-        await userApis.updateUserById(id, userUpdate);
-        thunkAPI.dispatch(setUserInfo(userUpdate));
-        thunkAPI.dispatch(actFetchAllUsers());
-        return null;
-    }
-);
-export const actUpdatePasswordById = createAsyncThunk(
-    "users/actUpdatePasswordById",
-    async ({ id, userUpdate }, thunkAPI) => {
-        await userApis.updateUserById(id, userUpdate);
-        thunkAPI.dispatch(actFetchAllUsers());
-        return userUpdate;
-    }
-);
 
+export const actUpdateUserById = createAsyncThunk(
+    "users/actUpdateUserById",
+    async ({ id, userUpdate }, thunkAPI) => {
+        try {
+            await userApis.updateUserById(id, userUpdate);
+            thunkAPI.dispatch(actFetchAllUsers());
+            return userUpdate;
+        } catch (error) {
+            console.log(error, "error actUpdateUserById");
+            return thunkAPI.rejectWithValue("Đã xảy ra lỗi khi cập nhật tài khoản");
+        }
+    }
+);
 
 
 const userSlice = createSlice({
@@ -101,6 +98,7 @@ const userSlice = createSlice({
         },
         logout: (state, action) => {
             state.isLogin = false;
+            state.userInfo = {};
             localStorage.setItem("isLogin", false);
             localStorage.setItem("userInfo", JSON.stringify(null));
         },
@@ -110,13 +108,12 @@ const userSlice = createSlice({
             state.isLoading = true;
         });
         builder.addCase(actCreateNewUser.rejected, (state, action) => {
-            state.errors = {};
-            // lấy cái thunkAPI.rejectWithValue ra hiển thị
+            state.errors = {}
             message.error(action.payload);
             state.isLoading = false;
         });
         builder.addCase(actCreateNewUser.fulfilled, (state, action) => {
-            state.users = action.payload;
+            state.users = action.payload
             message.success("Tạo tài khoản thành công!");
             state.isLoading = false;
         });
@@ -133,20 +130,13 @@ const userSlice = createSlice({
         });
 
         builder.addCase(actFetchUserById.fulfilled, (state, action) => {
-            state.userInfo = action.payload;
+            state.userInfo = action.payload
         });
 
-        builder.addCase(actUpdatePhoneNumberById.fulfilled, (state, action) => {
-            message.success("Cập nhật tài khoản thành công!");
+        builder.addCase(actUpdateUserById.fulfilled, (state, action) => {
             state.userInfo = action.payload;
-        });
-
-        builder.addCase(actUpdatePasswordById.fulfilled, (state, action) => {
-            // console.log(action.payload, "payload ne");
-            state.userInfo.password = action.payload.password;
-            state.userInfo.confirmPassword = action.payload.confirmPassword;
-            localStorage.setItem("userInfo", JSON.stringify(state.userInfo));
             message.success("Cập nhật tài khoản thành công!");
+            localStorage.setItem("userInfo", JSON.stringify(action.payload));
         });
     }
 })

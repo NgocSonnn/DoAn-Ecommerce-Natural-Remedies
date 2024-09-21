@@ -10,7 +10,13 @@ const CartComponent = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch()
     const { carts } = useSelector(state => state.carts)
+    const { isLogin } = useSelector((state) => state.user);
     const handleRedirectCheckOut = () => {
+        if (!isLogin) {
+            message.warning("Bạn cần đăng nhập để tiếp tục thanh toán. Vui lòng đăng nhập hoặc đăng ký!");
+            navigate(ROUTES.LOGIN_PAGE);
+            return;
+        }
         navigate(ROUTES.CHECKOUT_PAGE)
     }
     const calculateTotal = useCallback(() =>

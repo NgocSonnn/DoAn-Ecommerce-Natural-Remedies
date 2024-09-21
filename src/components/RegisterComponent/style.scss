@@ -19,6 +19,27 @@
         font-size: 18px !important;
     }
 
+    .ant-input-outlined:hover {
+        border-color: #81C408
+    }
+
+    .ant-picker-outlined:hover {
+        border-color: #81C408
+    }
+
+    :where(.css-dev-only-do-not-override-1gwfwyx).ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
+        border-color: #81C408
+    }
+
+    .login-form-forgot span:hover {
+        color: #FFB524 !important;
+    }
+
+    :where(.css-dev-only-do-not-override-1gwfwyx).ant-btn-primary:not(:disabled):not(.ant-btn-disabled):hover {
+        background-color: #FFB524;
+        border: 1px solid #FFB524;
+    }
+
     .ant-input {
         font-size: 20px;
         border-radius: 4px;
@@ -62,5 +83,14 @@
             background-color: #40a9ff;
             border-color: #40a9ff;
         }
+    }
+
+    .login-form-forgot span:hover {
+        color: #40a9ff;
+    }
+
+    .form-control:disabled,
+    .form-control:read-only {
+        background-color: white;
     }
 }

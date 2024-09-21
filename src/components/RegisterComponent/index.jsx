@@ -1,15 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Form, Input, Button, DatePicker, Select } from 'antd';
+import { Form, Input, Button, DatePicker, Select, Modal } from 'antd';
 import { UserOutlined, LockOutlined, PhoneOutlined, MailOutlined, HomeOutlined } from '@ant-design/icons';
 import './style.scss';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import { useForm, Controller } from 'react-hook-form';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useDispatch } from 'react-redux';
-import { actCreateNewUser } from '../../redux/features/user/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { actCreateNewUser, logout } from '../../redux/features/user/userSlice';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 
@@ -19,9 +20,12 @@ const RegisterComponent = () => {
     const [wards, setWards] = useState([]);
     const [selectedProvince, setSelectedProvince] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState("");
+    // eslint-disable-next-line no-unused-vars
     const [selectedWard, setSelectedWard] = useState("");
 
     const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const isLogin = useSelector((state) => state.user.isLogin);
 
     const dateFormat = 'DD/MM/YYYY';
 
@@ -56,10 +60,34 @@ const RegisterComponent = () => {
         resolver: yupResolver(schema),
     });
 
-    const onValid = (formValue) => {
-        console.log(formValue, "formValue");
-        dispatch(actCreateNewUser(formValue))
-        reset();
+
+    const onValid = async (formValue) => {
+        const updatedFormValue = {
+            ...formValue,
+            birthDay: dayjs(formValue.birthDay).format(),
+        };
+        try {
+            await dispatch(actCreateNewUser(updatedFormValue)).unwrap();
+            if (isLogin) {
+                Modal.confirm({
+                    title: 'Bạn đã đăng nhập',
+                    content: 'Bạn có muốn đăng nhập vào tài khoản vừa tạo không?',
+                    okText: 'Đăng nhập',
+                    cancelText: 'Hủy',
+                    onOk: () => {
+                        dispatch(logout())
+                        navigate(ROUTES.LOGIN_PAGE);
+                    },
+                    onCancel: () => {
+                        reset();
+                    }
+                });
+            } else {
+                navigate(ROUTES.LOGIN_PAGE);
+            }
+        } catch (error) {
+            reset();
+        }
     };
     //Load provinces
     useEffect(() => {
@@ -103,8 +131,6 @@ const RegisterComponent = () => {
     }, [selectedDistrict]);
 
     const handleProvinceChange = (event) => {
-        console.log(event, "provincode");
-
         const provinceCode = event
         setSelectedProvince(provinceCode);
         setSelectedDistrict("");
@@ -147,10 +173,11 @@ const RegisterComponent = () => {
 
     useEffect(() => {
         updateDistrictsAndWards();
-        console.log('hihi');
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProvince, selectedDistrict]);
+    const handleRedirectToLogInPage = () => {
+        navigate(ROUTES.LOGIN_PAGE)
+    }
 
     return (
         <div className="register-form-container">
@@ -283,9 +310,9 @@ const RegisterComponent = () => {
                                 value={field.value}
                                 {...field}
                             >
-                                <Option value="male">Nam</Option>
-                                <Option value="female">Nữ</Option>
-                                <Option value="other">Khác</Option>
+                                <Option value="Nam">Nam</Option>
+                                <Option value="Nữ">Nữ</Option>
+                                <Option value="Khác">Khác</Option>
                             </Select>
                         )}
                     />
@@ -305,6 +332,8 @@ const RegisterComponent = () => {
                                 {...field}
                                 onChange={(value) => {
                                     handleProvinceChange(value);
+                                    field.onChange(value);
+
                                 }}
                                 value={field.value}
                             >
@@ -329,12 +358,13 @@ const RegisterComponent = () => {
                             <Select
                                 placeholder="Chọn quận/huyện"
                                 allowClear
+                                {...field}
                                 onChange={(value) => {
                                     handleDistrictChange(value);
                                     field.onChange(value);
+
                                 }}
                                 value={field.value}
-                                {...field}
                             >
                                 {districts.map((district) => (
                                     <Option key={district.code} value={district.code}>
@@ -391,11 +421,14 @@ const RegisterComponent = () => {
                         )}
                     />
                 </Form.Item>
+                <Form.Item style={{ margin: 0, display: 'flex', justifyContent: "end" }}>
+                    <Button onClick={handleRedirectToLogInPage} style={{ color: "#81C408", border: 'none', display: 'flex', justifyContent: "end", paddingBottom: "10px", fontSize: "16px" }} className="login-form-forgot" >
+                        Bạn đã có tài khoản?
+                    </Button>
+                </Form.Item>
 
                 <Form.Item>
-                    <Link to={ROUTES.LOGIN_PAGE} style={{ display: 'flex', justifyContent: "end", paddingBottom: "10px", fontSize: "16px" }} className="login-form-forgot" >
-                        Bạn đã có tài khoản?
-                    </Link>
+
                     <Button type="primary" htmlType="submit" style={{ display: "flex", alignItems: 'center' }}>
                         Đăng Ký
                     </Button>

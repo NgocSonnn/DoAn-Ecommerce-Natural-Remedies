@@ -1,0 +1,23 @@
+.wishList-container {
+    margin: 0 auto;
+    max-width: 900px;
+
+    h3 {
+        text-align: center;
+        color: #81c408;
+        padding: 20px;
+    }
+
+    .form-control {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .nameProduct-detail {
+        cursor: pointer;
+    }
+
+    .nameProduct-detail:hover {
+        color: #81c408;
+    }
+}

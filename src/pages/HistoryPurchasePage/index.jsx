@@ -1,10 +1,13 @@
 import React from 'react'
 import useScrollToTop from '../../hooks/useScrollToTop'
+import HistoryPurcaseComponent from '../../components/HistoryPurchaseComponen'
 
 const HistoryPurchasePage = () => {
     useScrollToTop()
     return (
-        <div>HistoryPurchasePage</div>
+        <div>
+            <HistoryPurcaseComponent></HistoryPurcaseComponent>
+        </div>
     )
 }
 

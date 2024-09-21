@@ -3,7 +3,7 @@ import './style.scss'
 
 const PrivacyPolicyComponent = () => {
     return (
-        <div class="container">
+        <div className="container">
             <h2>1. Giới thiệu</h2>
             <p>Chúng tôi tại Natural Remedies cam kết bảo vệ quyền riêng tư và bảo mật thông tin cá nhân của bạn. Chính sách bảo mật này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ thông tin của bạn khi bạn truy cập và sử dụng trang web của chúng tôi.</p>
 

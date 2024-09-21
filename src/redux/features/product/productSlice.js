@@ -4,7 +4,6 @@ import { productApis } from "../../../apis/productApis"
 const initialState = {
     isLoading: false,
     products: [],
-    filterProduct: [],
     productInfo: {},
     errors: {},
     pagination: {
@@ -45,10 +44,22 @@ export const actFetchAllProduct = createAsyncThunk("products/actFetchAllProduct"
 
 export const actFetchProductById = createAsyncThunk('products/actFetchProductById',
     async (productId) => {
-        const product = await productApis.getProductsById(productId);
-        return product
+        const response = await productApis.getProductsById(productId);
+        return response
     }
 )
+
+export const actUpdateProductPurchases = createAsyncThunk(
+    'products/updateProductPurchases',
+    async (products) => {
+        const updatePromises = products.map(item => {
+            return productApis.updateProductPurchase(item.id, item.quantity);
+        });
+        const results = await Promise.all(updatePromises);
+        return results;
+    }
+);
+
 
 const productSlice = createSlice({
     name: "product",
@@ -155,9 +166,16 @@ const productSlice = createSlice({
         })
         builder.addCase(actFetchProductById.fulfilled, (state, action) => {
             state.productInfo = action.payload
-
         })
-
+        builder.addCase(actUpdateProductPurchases.fulfilled, (state, action) => {
+            state.isLoading = false;
+            action.payload.forEach(updatedProduct => {
+                const index = state.products.findIndex(product => product.id === updatedProduct.id);
+                if (index !== -1) {
+                    state.products[index].purchase += updatedProduct.quantity;
+                }
+            });
+        })
     }
 })
 export const { setLoading, setNewPage, setSearchKey, setSortField, setSortProduct, setFilterProduct, setBestSellProduct } = productSlice.actions
