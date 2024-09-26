@@ -33,10 +33,10 @@ const HeroComponent = () => {
                     <div className="col-md-12 col-lg-7">
                         <h3 className="mb-3 text-secondary">"Giải pháp tự nhiên để cải thiện sức khỏe"</h3>
                         <h1 className="mb-5 display-3 text-primary">Natural Remedies có đầy đủ dược liệu từ thiên nhiên</h1>
-                        <div className="position-relative mx-auto">
+                        <form onSubmit={handleSubmitSearch} className="position-relative mx-auto">
                             <input onChange={handleChangeInputSearch} className="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="search" placeholder="Tìm kiếm" />
-                            <button onClick={handleSubmitSearch} type="submit" className="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style={{ top: 0, right: "25%" }}>Tìm kiếm</button>
-                        </div>
+                            <button type="submit" className="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style={{ top: 0, right: "25%" }}>Tìm kiếm</button>
+                        </form>
                     </div>
                     <div className="col-md-12 col-lg-5">
                         <div id="carouselId" className="carousel slide position-relative" data-bs-ride="carousel">

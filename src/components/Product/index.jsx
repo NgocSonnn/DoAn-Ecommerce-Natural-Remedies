@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { actAddProductToCarts } from '../../redux/features/cart/cartSlice'
 import './style.scss'
 import { HeartFilled } from '@ant-design/icons'
-import { actAddWishList } from '../../redux/features/wishList/wishListSlice'
+import { actAddWishList, actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice'
 import { message, Modal } from 'antd'
 
 const Product = (props) => {
@@ -53,7 +53,7 @@ const Product = (props) => {
             dispatch(actAddWishList({
                 wishList: productWishList,
                 userId: userInfo.id
-            }));
+            })).then(() => dispatch(actFetchAllWishLists()));
         }
     }
 

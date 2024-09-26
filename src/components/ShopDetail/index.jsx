@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { actFetchProductById, setBestSellProduct, setFilterProduct, setSearchKey } from '../../redux/features/product/productSlice'
-import { generatePath, useNavigate, useParams } from 'react-router-dom'
+import { actFetchAllProduct, actFetchProductById, setBestSellProduct, setSearchKey } from '../../redux/features/product/productSlice'
+import { generatePath, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import './style.scss'
 import { actAddProductToCarts } from '../../redux/features/cart/cartSlice'
@@ -9,7 +9,7 @@ import { Form, Input, Button, Rate, Row, Col, Pagination, Spin, Alert, Modal, me
 import { actAddComment, actFetchAllComments, setNewPage } from '../../redux/features/comment/commentSlice'
 import { format } from 'date-fns'
 import { HeartFilled } from '@ant-design/icons'
-import { actAddWishList } from '../../redux/features/wishList/wishListSlice'
+import { actAddWishList, actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice'
 
 const ShopDetail = () => {
     const { products, productInfo } = useSelector((state) => state.product)
@@ -23,6 +23,9 @@ const ShopDetail = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const params = useParams()
+    const [quantity, setquantity] = useState(1)
+    const [searchParams, setSearchParams] = useSearchParams();
+
 
     const handleSortBestSeller = (event) => {
         event.preventDefault();
@@ -37,17 +40,6 @@ const ShopDetail = () => {
         event.preventDefault();
         navigate(ROUTES.SHOP_PAGE)
     }
-    const handleSortDryandWetProduct = (event) => {
-        const typeId = Number(event.target.value);
-        dispatch(setFilterProduct({ typeId }))
-        if (typeId === 1) {
-            products.filter(products => products.typeId === 1)
-        } else if (typeId === 2) {
-            products.filter(products => products.typeId === 2)
-        }
-        navigate(ROUTES.SHOP_PAGE)
-
-    };
     const handleToAddCart = () => {
         const productToAdd = {
             id: productInfo.id,
@@ -55,16 +47,17 @@ const ShopDetail = () => {
             weight: productInfo.weight,
             price: productInfo.price,
             nameProduct: productInfo.nameProduct,
-            quantity: 1,
+            quantity: quantity,
         }
         dispatch(actAddProductToCarts(productToAdd))
     }
     useEffect(() => {
         dispatch(actFetchProductById(params.productId))
+        dispatch(actFetchAllProduct())
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const relatedProductList = products.filter(products => products.brandId === productInfo.brandId && products.id !== productInfo.id).sort((a, b) => b.purchase - a.purchase).slice(0, 4)
+    const relatedProductList = products.filter(products => (products.brandId === productInfo.brandId)).sort((a, b) => b.purchase - a.purchase).slice(0, 8)
 
     const renderRelatedProduct = (relatedProduct) => {
         return relatedProduct.map((product) => {
@@ -106,7 +99,7 @@ const ShopDetail = () => {
                     dispatch(actAddWishList({
                         wishList: productWishList,
                         userId: userInfo.id
-                    }));
+                    })).then(() => dispatch(actFetchAllWishLists()));
                 }
             }
             const handleToAddCart = () => {
@@ -116,7 +109,7 @@ const ShopDetail = () => {
                     weight: product.weight,
                     price: product.price,
                     nameProduct: product.nameProduct,
-                    quantity: 1,
+                    quantity: quantity,
                 }
                 dispatch(actAddProductToCarts(productToAdd))
 
@@ -126,7 +119,7 @@ const ShopDetail = () => {
                     <div className="vesitable-img">
                         <img style={{ height: "320px", objectFit: "cover" }} src={product.productImg} className="img-fluid w-100 rounded-top" alt="" />
                     </div>
-                    <div onClick={handleToAddWishList} className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: "10px", right: "10px", cursor: "pointer" }}><HeartFilled /></div>
+                    <div onClick={handleToAddWishList} className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: "10px", left: "10px", cursor: "pointer" }}><HeartFilled /></div>
                     <div style={{ textAlign: "center" }} className="p-4 pb-0 rounded-bottom">
                         <h4 onClick={handleClickToProductDetail} className='product-name-style'>{product.nameProduct}</h4>
                         <p>{product.description}</p>
@@ -157,20 +150,26 @@ const ShopDetail = () => {
     )
 
     useEffect(() => {
+        const currentPage = Number(searchParams.get('_page')) || 1;
         dispatch(actFetchAllComments({
-            _page: 1,
+            _page: currentPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
             productId: params.productId
         }))
         return () => {
-            dispatch(setNewPage(1))
+            dispatch(setNewPage(currentPage))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.productId])
     const handlePageChange = (newPage) => {
         dispatch(setNewPage(newPage));
+        setSearchParams({
+            ...Object.fromEntries(searchParams),
+            _page: newPage,
+            _limit: pagination.limitPerPage
+        });
         dispatch(actFetchAllComments({
             _page: newPage,
             _limit: pagination.limitPerPage,
@@ -213,6 +212,40 @@ const ShopDetail = () => {
         })
     }
 
+    const handleQuantityChange = (newQuantity) => {
+
+        if (newQuantity < 1) {
+            return
+        } else {
+            setquantity(newQuantity)
+        }
+    }
+    const handleIncrement = (currentQuantity) => {
+        handleQuantityChange(currentQuantity + 1);
+    };
+
+    const handleDecrement = (currentQuantity) => {
+        if (currentQuantity > 1) {
+            handleQuantityChange(currentQuantity - 1);
+        }
+    };
+    useEffect(() => {
+        const _page = searchParams.get('_page')
+        if (_page) {
+            dispatch(setNewPage(_page))
+        }
+
+        dispatch(actFetchAllComments({
+            _page: _page,
+            _limit: pagination.limitPerPage,
+            _sort: sortField,
+            _order: sortOrder,
+            productId: params.productId
+        }))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
     return (
         <div className="container-fluid py-5 mt-5">
             <div className="container py-5">
@@ -239,13 +272,13 @@ const ShopDetail = () => {
                                 <p className="mb-4">Đã bán: <b>{productInfo.purchase}</b> sản phẩm</p>
                                 <div className="input-group quantity mb-5" style={{ width: "100px" }}>
                                     <div className="input-group-btn">
-                                        <button className="btn btn-sm btn-minus rounded-circle bg-light border" >
+                                        <button onClick={() => handleDecrement(quantity)} className="btn btn-sm btn-minus rounded-circle bg-light border" >
                                             <i className="fa fa-minus"></i>
                                         </button>
                                     </div>
-                                    <input type="text" className="form-control form-control-sm text-center border-0" placeholder="1" />
+                                    <input onChange={(e) => { handleQuantityChange(parseInt(e.target.value)) }} value={quantity} style={{ backgroundColor: 'transparent' }} type="text" className="form-control form-control-sm text-center border-0" min={1} disabled />
                                     <div className="input-group-btn">
-                                        <button className="btn btn-sm btn-plus rounded-circle bg-light border">
+                                        <button onClick={() => handleIncrement(quantity)} className="btn btn-sm btn-plus rounded-circle bg-light border">
                                             <i className="fa fa-plus"></i>
                                         </button>
                                     </div>
@@ -376,23 +409,22 @@ const ShopDetail = () => {
                     <div className="col-lg-4 col-xl-3">
                         <div className="row g-4 fruite">
                             <div className="col-lg-12">
-                                <div className="input-group w-100 mx-auto d-flex mb-4">
+                                <form onSubmit={handleSubmitSearch} className="input-group w-100 mx-auto d-flex mb-4">
                                     <input type="search" className="form-control p-3" placeholder="Tìm kiếm" aria-describedby="search-icon-1" onChange={handleChangeInputSearch} />
-                                    <button type='submit' onClick={handleSubmitSearch} style={{ border: "none", backgroundColor: "transparent" }}><span style={{ height: "58px", borderRadius: "0 10px 10px 0" }} id="search-icon-1" className="input-group-text p-3"><i className="fa fa-search"></i></span></button>
-                                </div>
+                                    <button type='submit' style={{ border: "none", backgroundColor: "transparent" }}><span style={{ height: "58px", borderRadius: "0 10px 10px 0" }} id="search-icon-1" className="input-group-text p-3"><i className="fa fa-search"></i></span></button>
+                                </form>
                                 <div className="mb-4">
                                     <h4>Loại</h4>
                                     <ul style={{ listStyle: "none" }} className="list-unstyled fruite-categorie">
                                         <li>
                                             <div className="d-flex justify-content-between fruite-name">
-                                                <button onClick={handleSortDryandWetProduct} value={1} className='button-style'><i className="fas fa-apple-alt me-2"></i>Sản phẩm dạng khô</button>
-                                                <span>(43)</span>
+                                                <Link to={ROUTES.DRY_PAGE} className='button-style'><i className="fas fa-apple-alt me-2"></i>Sản phẩm dạng khô</Link>
                                             </div>
                                         </li>
                                         <li>
                                             <div className="d-flex justify-content-between fruite-name">
-                                                <button onClick={handleSortDryandWetProduct} value={2} className='button-style'><i className="fas fa-apple-alt me-2"></i>Sản phẩm dạng tươi, lỏng hoặc tinh chất</button>
-                                                <span style={{ display: "flex", alignItems: "center" }}>(20)</span>
+                                                <Link to={ROUTES.WET_PAGE} className='button-style'><i className="fas fa-apple-alt me-2"></i>Sản phẩm dạng tươi, lỏng hoặc tinh chất</Link>
+
                                             </div>
                                         </li>
                                     </ul>

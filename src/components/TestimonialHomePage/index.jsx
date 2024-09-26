@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { useDispatch, useSelector } from 'react-redux'
 import { Pagination, Spin, Alert, Form, Input, Button, Rate, Row, Col } from "antd";
 import { actAddComment, actFetchAllComments, setNewPage } from '../../redux/features/comment/commentSlice';
+import { useSearchParams } from 'react-router-dom';
 
 
 const TestimonialHomePage = () => {
@@ -14,6 +15,8 @@ const TestimonialHomePage = () => {
     const dispatch = useDispatch()
 
     const [form] = Form.useForm();
+
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const onFinish = (values) => {
         const updatedValues = {
@@ -26,6 +29,11 @@ const TestimonialHomePage = () => {
 
     const handlePageChange = (newPage) => {
         dispatch(setNewPage(newPage));
+        setSearchParams({
+            ...Object.fromEntries(searchParams),
+            _page: newPage,
+            _limit: pagination.limitPerPage
+        });
         dispatch(actFetchAllComments({
             _page: newPage,
             _limit: pagination.limitPerPage,
@@ -34,17 +42,31 @@ const TestimonialHomePage = () => {
         }));
     };
     useEffect(() => {
+        const currentPage = Number(searchParams.get('_page')) || 1;
         dispatch(actFetchAllComments({
-            _page: 1,
+            _page: currentPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
         }))
         return () => {
-            dispatch(setNewPage(1))
+            dispatch(setNewPage(currentPage))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+    useEffect(() => {
+        const _page = searchParams.get('_page')
+        if (_page) {
+            dispatch(setNewPage(_page))
+        }
+        dispatch(actFetchAllComments({
+            _page: _page,
+            _limit: pagination.limitPerPage,
+            _sort: sortField,
+            _order: sortOrder,
+        }))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const renderComments = (_comment) => {
         return _comment.map((comment) => {

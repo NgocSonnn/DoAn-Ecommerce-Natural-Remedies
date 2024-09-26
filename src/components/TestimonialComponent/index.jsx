@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { useDispatch, useSelector } from 'react-redux'
 import { Pagination, Spin, Alert } from "antd";
 import { actFetchAllComments, setNewPage } from '../../redux/features/comment/commentSlice';
+import { useSearchParams } from 'react-router-dom';
 
 
 const TestimonialComponent = () => {
@@ -11,9 +12,15 @@ const TestimonialComponent = () => {
     const isLoading = useSelector((state) => state.comment.isLoading);
     const errors = useSelector((state) => state.comment.errors);
     const dispatch = useDispatch()
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const handlePageChange = (newPage) => {
         dispatch(setNewPage(newPage));
+        setSearchParams({
+            ...Object.fromEntries(searchParams),
+            _page: newPage,
+            _limit: pagination.limitPerPage
+        });
         dispatch(actFetchAllComments({
             _page: newPage,
             _limit: pagination.limitPerPage,
@@ -22,17 +29,31 @@ const TestimonialComponent = () => {
         }));
     };
     useEffect(() => {
+        const currentPage = Number(searchParams.get('_page')) || 1;
         dispatch(actFetchAllComments({
-            _page: 1,
+            _page: currentPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
         }))
         return () => {
-            dispatch(setNewPage(1))
+            dispatch(setNewPage(currentPage))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+    useEffect(() => {
+        const _page = searchParams.get('_page')
+        if (_page) {
+            dispatch(setNewPage(_page))
+        }
+        dispatch(actFetchAllComments({
+            _page: _page,
+            _limit: pagination.limitPerPage,
+            _sort: sortField,
+            _order: sortOrder,
+        }))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const renderComments = (_comment) => {
         return _comment.map((comment) => {

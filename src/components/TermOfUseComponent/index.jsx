@@ -3,7 +3,7 @@ import './style.scss'
 
 const TermOfUseComponent = () => {
     return (
-        <div class="container">
+        <div className="container">
             <h2>1. Giới thiệu</h2>
             <p>Chào mừng bạn đến với trang web Natural Remedies. Việc sử dụng trang web của chúng tôi đồng nghĩa với việc bạn đồng ý với các điều khoản và điều kiện sử dụng được nêu dưới đây. Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng không sử dụng trang web của chúng tôi.</p>
 

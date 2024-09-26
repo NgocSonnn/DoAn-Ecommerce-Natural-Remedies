@@ -9,25 +9,22 @@ const initialState = {
     pagination: {
         currentPage: 1,
         limitPerPage: 9,
-        total: 8,
+        total: 0,
 
     },
     searchKey: "",
     sortField: "",
     sortOrder: "",
-    filters: {
-        brandId: null,
-        typeId: null,
-        price: null,
-        purchase: null
-    },
-    sorted: '',
+    brandId: null,
+    typeId: null,
+    bestSeller: '',
+    sortedName: '',
+    sortedPrice: '',
     params: {
         _sort: null,
         _order: null,
         price_gte: null,
         price_lte: null,
-        brandId_like: null,
     },
 
 }
@@ -60,7 +57,6 @@ export const actUpdateProductPurchases = createAsyncThunk(
     }
 );
 
-
 const productSlice = createSlice({
     name: "product",
     initialState: initialState,
@@ -78,77 +74,96 @@ const productSlice = createSlice({
         setSortField: (state, action) => {
             state.sortField = action.payload
         },
-        setSortProduct: (state, action) => {
-            state.sorted = action.payload;
-
+        setSortNameProduct: (state, action) => {
+            state.sortedName = action.payload;
             switch (action.payload) {
-                case "Tên: A -> Z":
+                case '1':
                     state.params._sort = "nameProduct";
                     state.params._order = "asc";
                     break;
-                case "Tên: Z -> A":
+                case '2':
                     state.params._sort = "nameProduct";
                     state.params._order = "desc";
                     break;
-                case "Giá: Thấp -> Cao":
+                case '3':
                     state.params._sort = "price";
                     state.params._order = "asc";
                     break;
-                case "Giá: Cao -> Thấp":
+                case '4':
                     state.params._sort = "price";
                     state.params._order = "desc";
-                    break;
-                case "0K -> 99K":
-                    state.params.price_gte = 0;
-                    state.params.price_lte = 99
-                    state.params._sort = "price";
-                    state.params._order = "asc";
-                    break;
-                case "100K -> 199K":
-                    state.params.price_gte = 100;
-                    state.params.price_lte = 199
-                    state.params._sort = "price";
-                    state.params._order = "asc";
-                    break;
-                case "200K -> 299K":
-                    state.params.price_gte = 200;
-                    state.params.price_lte = 299
-                    state.params._sort = "price";
-                    state.params._order = "asc";
-                    break;
-                case "300K -> 399K":
-                    state.params.price_gte = 300;
-                    state.params.price_lte = 399
-                    state.params._sort = "price";
-                    state.params._order = "asc";
-                    break;
-                case "400K -> 499K":
-                    state.params.price_gte = 400;
-                    state.params.price_lte = 499
-                    state.params._sort = "price";
-                    state.params._order = "asc";
                     break;
                 default:
+
+                    break;
+            }
+        },
+        setSortPriceProduct: (state, action) => {
+            state.sortedPrice = action.payload;
+            switch (action.payload) {
+                case '0':
                     state.params.price_gte = 0;
                     state.params.price_lte = 500
                     state.params._sort = "id";
                     state.params._order = "asc";
                     break;
+                case '1':
+                    state.params.price_gte = 0;
+                    state.params.price_lte = 99
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                case '2':
+                    state.params.price_gte = 100;
+                    state.params.price_lte = 199
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                case '3':
+                    state.params.price_gte = 200;
+                    state.params.price_lte = 299
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                case '4':
+                    state.params.price_gte = 300;
+                    state.params.price_lte = 399
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                case '5':
+                    state.params.price_gte = 400;
+                    state.params.price_lte = 499
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                case '6':
+                    state.params.price_gte = 499;
+                    state.params.price_lte = 599
+                    state.params._sort = "price";
+                    state.params._order = "asc";
+                    break;
+                default:
+
+                    break;
             }
         },
 
-        setFilterProduct: (state, action) => {
-            state.filters = action.payload
-            if (state.filters.brandId === 0) {
-                state.filters = state.filters.typeId === 1 && state.filters.typeId === 2;
-            } else {
-                state.filters = action.payload
-            }
+        setFilterProductBrandId: (state, action) => {
+            state.brandId = action.payload
+        },
+
+        setFilterProductTypeId: (state, action) => {
+            state.typeId = action.payload
         },
         setBestSellProduct: (state, action) => {
-            state.filters = action.payload
+            state.bestSeller = action.payload
             state.params._sort = 'purchase'
             state.params._order = 'desc'
+        },
+        setSearchParams: (state, action) => {
+            const { params } = action.payload;
+            state.params = { ...state.params, ...params };
         },
     },
     extraReducers: (builder) => {
@@ -178,5 +193,5 @@ const productSlice = createSlice({
         })
     }
 })
-export const { setLoading, setNewPage, setSearchKey, setSortField, setSortProduct, setFilterProduct, setBestSellProduct } = productSlice.actions
+export const { setLoading, setNewPage, setSearchKey, setSortField, setSortNameProduct, setBestSellProduct, setSortPriceProduct, setSearchParams, setFilterProductBrandId, setFilterProductTypeId } = productSlice.actions
 export const productReducer = productSlice.reducer

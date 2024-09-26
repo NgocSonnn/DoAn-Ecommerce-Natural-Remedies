@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes';
 import { useDispatch, useSelector } from 'react-redux';
 import { actDeleteProductInCarts, actUpdateQuantityOfProduct } from '../../redux/features/cart/cartSlice';
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 
 const CartComponent = () => {
     const cartItems = useSelector((state) => state.carts?.carts || []);
@@ -37,7 +37,14 @@ const CartComponent = () => {
     const renderCart = (_cart) => {
         return _cart.map((cart) => {
             const handleDeleteItem = (itemId) => {
-                dispatch(actDeleteProductInCarts(itemId))
+                Modal.confirm({
+                    title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+                    content: 'Hành động này không thể hoàn tác.',
+                    okText: 'Xóa',
+                    okType: 'danger',
+                    cancelText: 'Hủy',
+                    onOk: () => dispatch(actDeleteProductInCarts(itemId))
+                })
             }
             const handleQuantityChange = (id, newQuantity) => {
                 if (newQuantity < 1) {

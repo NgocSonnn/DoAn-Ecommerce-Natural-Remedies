@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './style.scss'
 import { useDispatch, useSelector } from 'react-redux'
-import { actDeleteWishListById, actFetchAllWishListsByUserId, setNewPage } from '../../redux/features/wishList/wishListSlice'
+import { actDeleteWishListById, actFetchAllWishLists, actFetchAllWishListsByUserId, setNewPage } from '../../redux/features/wishList/wishListSlice'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { message, Modal, Pagination } from 'antd'
@@ -45,8 +45,8 @@ const WishListComponent = () => {
                             _limit: pagination.limitPerPage,
                             q: searchKeyState,
                             userId: userInfo.id
-
                         })))
+                        .then(() => dispatch(actFetchAllWishLists()))
                 });
 
             }

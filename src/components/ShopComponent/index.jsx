@@ -1,44 +1,118 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { actFetchAllProduct, setBestSellProduct, setFilterProduct, setNewPage, setSearchKey, setSortProduct } from '../../redux/features/product/productSlice'
+import { actFetchAllProduct, setBestSellProduct, setFilterProductBrandId, setFilterProductTypeId, setNewPage, setSearchKey, setSortNameProduct, setSortPriceProduct } from '../../redux/features/product/productSlice'
 import { message, Modal, Pagination, Radio, Select } from 'antd'
 import './style.scss'
 import SpinnerComponent from '../SpinnerComponent'
-import { generatePath, useNavigate } from 'react-router-dom'
+import { generatePath, useNavigate, useSearchParams } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { actAddProductToCarts } from '../../redux/features/cart/cartSlice'
 import { HeartFilled } from '@ant-design/icons'
-import { actAddWishList } from '../../redux/features/wishList/wishListSlice'
+import { actAddWishList, actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice'
 
 const ShopComponent = () => {
-    const [radioValue, setRadioValue] = useState(0);
-    const { isLoading, products, pagination, searchKey, params, sorted, filters } = useSelector((state) => state.product)
+    const [radioValue, setRadioValue] = useState(null);
+    const { isLoading, products, pagination, searchKey, params, filters, brandId, typeId, bestSeller, sortedName, sortedPrice } = useSelector((state) => state.product)
     const isLogin = useSelector(state => state.user.isLogin)
     const userInfo = useSelector(state => state.user.userInfo)
     const wishLists = useSelector(state => state.wishLists.wishLists)
     const dispatch = useDispatch()
     const naviage = useNavigate()
+    const [selectDryandWetProduct, setSelectDryandWetProduct] = useState(null)
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [sortNameState, setSortNameState] = useState('Tên: A -> Z')
+    const [sortPriceState, setSortPriceState] = useState('0K -> 600K')
 
-
+    const optionName = [
+        { value: '1', label: "Tên: A -> Z" },
+        { value: '2', label: "Tên: Z -> A" },
+        { value: '3', label: "Giá: Thấp -> Cao" },
+        { value: '4', label: "Giá: Cao -> Thấp" },
+    ]
+    const optionPrice = [
+        { value: '0', label: "0K -> 600K" },
+        { value: '1', label: "0K -> 99K" },
+        { value: '2', label: "100K -> 199K" },
+        { value: '3', label: "200K -> 299K" },
+        { value: '4', label: "300K -> 399K" },
+        { value: '5', label: "400K -> 499K" },
+        { value: '6', label: "500K -> 599K" },
+    ]
 
     useEffect(() => {
-        dispatch(actFetchAllProduct({
-            _page: 1,
+        console.log("Search Params:", Object.fromEntries(searchParams));
+        const currentPage = Number(searchParams.get('_page')) || 1;
+        const q = searchParams.get('q') || searchKey;
+        const typeId = Number(searchParams.get('typeId')) || null;
+        const brandId = Number(searchParams.get('brandId')) || null
+        const bestSeller = searchParams.get('bestSeller')
+        const sortedName = searchParams.get('sortedName') || ''
+        const sortedPrice = searchParams.get('sortedPrice') || ''
+        console.log(sortedName, "sortedName");
+        console.log(sortedPrice, "sortedPrice");
+        console.log(bestSeller, "bestSeller");
+
+
+        if (currentPage) {
+            dispatch(setNewPage(currentPage))
+        }
+        if (brandId) {
+            setRadioValue(brandId);
+            dispatch(setFilterProductBrandId(brandId));
+        }
+        if (typeId) {
+            setSelectDryandWetProduct(typeId)
+            dispatch(setFilterProductTypeId(typeId));
+        }
+        if (sortedName) {
+            setSortNameState(sortedName)
+            dispatch(setSortNameProduct(sortedName));
+        }
+        if (sortedPrice) {
+            setSortPriceState(sortedPrice)
+            dispatch(setSortPriceProduct(sortedPrice));
+        }
+        if (q) {
+            dispatch(setSearchKey(q));
+        }
+        if (bestSeller) {
+            dispatch(setBestSellProduct(products))
+        }
+        console.log("Fetching products with params:", {
+            _page: currentPage,
             _limit: pagination.limitPerPage,
-            q: searchKey,
+            q: q,
             ...params,
             ...filters,
+            typeId: typeId,
+            brandId: brandId,
+            sortedName: sortedName,
+            sortedPrice: sortedPrice,
+            bestSeller: bestSeller
+        });
 
+        dispatch(actFetchAllProduct({
+            _page: currentPage,
+            _limit: pagination.limitPerPage,
+            q: q,
+            ...params,
+            ...filters,
+            typeId: typeId,
+            brandId: brandId,
+            sortedName: sortedName,
+            sortedPrice: sortedPrice,
+            bestSeller: bestSeller
         }))
-        return () => {
-            dispatch(setNewPage(1))
-        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters, sorted])
-
+    }, [filters, params, searchParams])
 
     const handleChangePage = (newPage) => {
         dispatch(setNewPage(newPage));
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", newPage);
+            return newParams;
+        });
         dispatch(actFetchAllProduct({
             _page: newPage,
             _limit: pagination.limitPerPage,
@@ -48,83 +122,136 @@ const ShopComponent = () => {
         }))
     }
 
-
     const handleChangeInputSearch = (event) => {
         const value = event.target.value
         dispatch(setSearchKey(value))
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            newParams.set("q", value);
+            return newParams;
+        });
     }
+
     const handleSubmitSearch = (event) => {
         event.preventDefault();
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            return newParams;
+        });
+        const q = searchParams.get('q') || searchKey;
+        const currentPage = Number(searchParams.get('_page')) || 1;
         dispatch(actFetchAllProduct({
-            _page: 1,
+            _page: currentPage,
             _limit: pagination.limitPerPage,
-            q: searchKey,
+            q: q,
             ...params,
             ...filters
         }))
-        dispatch(setNewPage(1))
+        dispatch(setNewPage(currentPage))
     }
 
-    const handleSortBestSeller = (event) => {
-        event.preventDefault()
+    const handleSortBestSeller = () => {
         dispatch(setBestSellProduct(products))
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            newParams.set('_bestSeller', '')
+            return newParams;
+        });
         dispatch(actFetchAllProduct({
             _page: 1,
             _limit: pagination.limitPerPage,
             q: searchKey,
             ...params,
-            ...filters
+            ...filters,
         }))
         dispatch(setNewPage(1));
         window.scrollTo(0, 0)
     }
 
+    const handleSortChangeName = (value) => {
+        console.log(value, "valueName");
 
-
-    const handleSortDryandWetProduct = (event) => {
-        const typeId = Number(event.target.value);
-        dispatch(setFilterProduct({ typeId }))
-        dispatch(actFetchAllProduct({
-            _page: 1,
-            _limit: pagination.limitPerPage,
-            q: searchKey,
-            ...params,
-            ...filters
-        }))
-        if (typeId === 1) {
-            products.filter(products => products.typeId === 1)
-        } else if (typeId === 2) {
-            products.filter(products => products.typeId === 2)
-        }
-        dispatch(setNewPage(1));
-    };
-
-
-    const handleSortChange = (value) => {
-        dispatch(setSortProduct(value))
+        dispatch(setSortNameProduct(value))
+        setSortNameState(value)
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            newParams.set("sortedName", value);
+            return newParams;
+        });
         dispatch(actFetchAllProduct({
             _page: 1,
             _limit: pagination.limitPerPage,
             q: searchKey,
             ...params,
             ...filters,
+            sortedName: value
         }))
 
         dispatch(setNewPage(1))
     }
-
-    const handleRadioChange = (event) => {
-        const brandId = Number(event.target.value);
-        setRadioValue(brandId)
-        dispatch(setFilterProduct({ brandId }))
+    const handleSortChangePrice = (value) => {
+        dispatch(setSortPriceProduct(value))
+        setSortPriceState(value)
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            newParams.set("sortedPrice", value);
+            return newParams;
+        });
         dispatch(actFetchAllProduct({
             _page: 1,
             _limit: pagination.limitPerPage,
             q: searchKey,
             ...params,
             ...filters,
+            sortedPrice: value
         }))
-        products.filter(products => products.brandId === brandId)
+        dispatch(setNewPage(1))
+    }
+    const handleSortDryandWetProduct = (event) => {
+        const typeId = Number(event.target.value);
+        setSelectDryandWetProduct(typeId)
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("_page", 1);
+            newParams.set("typeId", typeId);
+            return newParams;
+        });
+        dispatch(setFilterProductTypeId(typeId))
+        dispatch(actFetchAllProduct({
+            _page: 1,
+            _limit: pagination.limitPerPage,
+            q: searchKey,
+            ...params,
+            ...filters,
+            typeId: typeId
+        }))
+        dispatch(setNewPage(1));
+    };
+
+    const handleRadioChange = (event) => {
+        const brandId = event.target.value;
+        console.log(brandId, "brandID");
+        setRadioValue(brandId)
+        dispatch(setFilterProductBrandId(brandId));
+        setSearchParams((prev) => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("brandId", brandId);
+            newParams.set("_page", 1);
+            return newParams;
+        });
+        dispatch(actFetchAllProduct({
+            _page: 1,
+            _limit: pagination.limitPerPage,
+            q: searchKey,
+            ...params,
+            ...filters,
+            brandId: brandId,
+        }))
         dispatch(setNewPage(1));
 
     };
@@ -169,7 +296,7 @@ const ShopComponent = () => {
                     dispatch(actAddWishList({
                         wishList: productWishList,
                         userId: userInfo.id
-                    }));
+                    })).then(() => dispatch(actFetchAllWishLists()));
                 }
             }
             const handleToAddCart = () => {
@@ -204,6 +331,7 @@ const ShopComponent = () => {
     }
 
 
+
     return (
         <div className="container-fluid fruite py-5">
             <div className="container py-5">
@@ -212,35 +340,27 @@ const ShopComponent = () => {
                     <div className="col-lg-12">
                         <div className="row g-4">
                             <div className="col-xl-3">
-                                <div className="input-group w-100 mx-auto d-flex">
+                                <form onSubmit={() => handleSubmitSearch} className="input-group w-100 mx-auto d-flex">
                                     <input type="search" className="form-control p-3" placeholder="Tìm kiếm..." aria-describedby="search-icon-1" value={searchKey}
                                         onChange={handleChangeInputSearch} />
-                                    <button type='submit' onClick={handleSubmitSearch} style={{ border: "none", backgroundColor: "transparent" }}><span style={{ height: "58px", borderRadius: "0 10px 10px 0" }} id="search-icon-1" className="input-group-text p-3"><i className="fa fa-search"></i></span></button>
-                                </div>
+                                    <button type='submit' style={{ border: "none", backgroundColor: "transparent" }}><span style={{ height: "58px", borderRadius: "0 10px 10px 0" }} id="search-icon-1" className="input-group-text p-3"><i className="fa fa-search"></i></span></button>
+                                </form>
                             </div>
                             <div className="col-6"></div>
                             <div className="col-xl-3">
                                 <div style={{ alignItems: "center" }} className="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
                                     <label htmlFor="fruits">Lọc:</label>
-                                    <Select id="fruits" name="fruitlist" className="border-0 form-select-sm bg-light me-3" defaultValue={"Tên: A -> Z"}
-                                        onChange={handleSortChange}
-                                        options={[{
-                                            value: "Tên: A -> Z",
-                                            label: "Tên: A -> Z"
-                                        },
-                                        {
-                                            value: "Tên: Z -> A",
-                                            label: "Tên: Z -> A",
-                                        }, {
-                                            value: "Giá: Thấp -> Cao",
-                                            label: "Giá: Thấp -> Cao"
-                                        }, {
-                                            value: "Giá: Cao -> Thấp",
-                                            label: "Giá: Cao -> Thấp"
-                                        },
-                                        ]}
+                                    <Select id="fruits" name="fruitlist" className="border-0 form-select-sm bg-light me-3"
+                                        value={sortNameState}
+                                        onChange={
+                                            handleSortChangeName
+                                        }
                                     >
-
+                                        {optionName.map(option => (
+                                            <Select.Option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </Select.Option>
+                                        ))}
                                     </Select>
                                 </div>
                             </div>
@@ -254,49 +374,36 @@ const ShopComponent = () => {
                                             <ul style={{ listStyle: "none" }} className="list-unstyled fruite-categorie">
                                                 <li>
                                                     <div className="d-flex justify-content-between fruite-name">
-                                                        <button onClick={handleSortDryandWetProduct} value={1} className='button-style'><i className=" fas fa-apple-alt me-2"></i>Sản phẩm dạng khô</button>
+                                                        <button onClick={handleSortDryandWetProduct} value={1}
+                                                            className={`button-style ${selectDryandWetProduct === 1 ? 'selected-typeId' : ''}`}
+                                                        ><i className=" fas fa-apple-alt me-2"></i>Sản phẩm dạng khô</button>
                                                         <span >(43)</span>
                                                     </div>
                                                 </li>
                                                 <li>
                                                     <div className="d-flex justify-content-between fruite-name">
-                                                        <button onClick={handleSortDryandWetProduct} value={2} className='button-style'><i className=" fas fa-apple-alt me-2"></i>Sản phẩm dạng tươi, lỏng hoặc tinh chất</button>
+                                                        <button onClick={handleSortDryandWetProduct} value={2}
+                                                            className={`button-style ${selectDryandWetProduct === 2 ? 'selected-typeId' : ''}`}
+                                                        ><i className=" fas fa-apple-alt me-2"></i>Sản phẩm dạng tươi, lỏng hoặc tinh chất</button>
                                                         <span style={{ display: "flex", alignItems: "center" }}>(20)</span>
                                                     </div>
                                                 </li>
-
                                             </ul>
                                         </div>
                                     </div>
                                     <div className="col-lg-12">
                                         <div className="mb-3">
                                             <h4 htmlFor="price" className="mb-2">Khoảng giá:</h4>
-                                            <Select id="fruits" name="fruitlist" className="border-0 form-select-sm me-3" defaultValue={"0K - > 500K"}
-                                                onChange={handleSortChange}
-                                                options={[
-                                                    {
-                                                        value: "0K -> 500K",
-                                                        label: "0K -> 500K"
-                                                    },
-                                                    {
-                                                        value: "0K -> 99K",
-                                                        label: "0K -> 99K"
-                                                    },
-                                                    {
-                                                        value: "100K -> 199K",
-                                                        label: "100K -> 199K",
-                                                    }, {
-                                                        value: "200K -> 299K",
-                                                        label: "200K -> 299K"
-                                                    }, {
-                                                        value: "300K -> 399K",
-                                                        label: "300K -> 399K"
-                                                    }, {
-                                                        value: "400K -> 499K",
-                                                        label: "400K -> 499K"
-                                                    }
-                                                ]}
+                                            <Select id="fruits" name="fruitlist" className="border-0 form-select-sm me-3" value={sortPriceState}
+                                                onChange={
+                                                    handleSortChangePrice
+                                                }
                                             >
+                                                {optionPrice.map(option => (
+                                                    <Select.Option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </Select.Option>
+                                                ))}
                                             </Select>
                                             {/* <input type="range" className="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500"
                                                 value={rangeValue} onChange={handleInputChangeRanger} />
@@ -306,9 +413,6 @@ const ShopComponent = () => {
                                     <div className="col-lg-12">
                                         <Radio.Group className="mb-3" value={radioValue} onChange={handleRadioChange}>
                                             <h4>Chi tiết:</h4>
-                                            <div className="mb-2">
-                                                <Radio value={0} className="me-2">Không chi tiết</Radio>
-                                            </div>
                                             <div className="mb-2">
                                                 <Radio value={1} className="me-2">Thảo dược khô</Radio>
                                             </div>

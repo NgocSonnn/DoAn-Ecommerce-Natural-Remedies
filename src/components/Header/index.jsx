@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import './style.scss'
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ const HeaderComponent = () => {
     const userInfo = useSelector(state => state.user.userInfo);
     const dispatch = useDispatch();
     const navigate = useNavigate()
+
     const cartItemCount = cartItems.length
 
     const handleLogout = () => {
@@ -29,8 +30,11 @@ const HeaderComponent = () => {
             userId: userInfo.id
         }))
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-    const wishListsCount = wishListAll.length
+    }, [dispatch])
+    const filterWishLists = wishListAll.filter(wishList => {
+        return wishList.userId === userInfo.id
+    });
+    const wishListsCount = filterWishLists.length
 
     return (
         <div className="container-fluid fixed-top">
@@ -41,9 +45,12 @@ const HeaderComponent = () => {
                         <small className="me-3"><i className="fas fa-mobile-alt me-2 text-secondary"></i><a href="https://www.facebook.com/profile.php?id=100041596806403" target='_blank' rel='noopener noreferrer' className="text-white">0363041668</a></small>
                     </div>
                     <div className="top-link pe-2">
-                        <Link to={ROUTES.PRIVACYPOLICY_PAGE} className="text-white"><small className="text-white mx-2">CS bảo mật</small>/</Link>
-                        <Link to={ROUTES.TERMOFUSE_PAGE} className="text-white"><small className="text-white mx-2">Điều khoản SD</small>/</Link>
-                        <Link to={ROUTES.SALENREFUND_PAGE} className="text-white"><small className="text-white ms-2">CS bán hàng</small></Link>
+                        <Link to={ROUTES.PRIVACYPOLICY_PAGE} className="text-white"><small className="text-white mx-2">CS bảo mật</small>/
+                        </Link>
+                        <Link to={ROUTES.TERMOFUSE_PAGE} className="text-white"><small className="text-white mx-2">Điều khoản SD</small>/
+                        </Link>
+                        <Link to={ROUTES.SALENREFUND_PAGE} className="text-white"><small className="text-white mx-2">CS bán hàng</small>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -55,21 +62,21 @@ const HeaderComponent = () => {
                     </button>
                     <div className="collapse navbar-collapse bg-white" id="navbarCollapse">
                         <div className="navbar-nav mx-auto">
-                            <Link to={ROUTES.HOME_PAGE} className="nav-item nav-link" >Trang chủ</Link>
-                            <Link to={ROUTES.SHOP_PAGE} className="nav-item nav-link">Sản phẩm</Link>
-                            <Link to={ROUTES.TESTIMONIAL_PAGE} className="nav-item nav-link">Nhận xét của khách hàng</Link>
-                            <Link to={ROUTES.CONTACT_PAGE} className="nav-item nav-link">Liên hệ</Link>
+                            <NavLink to={ROUTES.HOME_PAGE} className="nav-item nav-link" activeclassname="text-primary">Trang chủ</NavLink>
+                            <NavLink to={ROUTES.SHOP_PAGE} className="nav-item nav-link" activeclassname="text-primary">Sản phẩm</NavLink>
+                            <NavLink to={ROUTES.TESTIMONIAL_PAGE} className="nav-item nav-link" activeclassname="text-primary">Nhận xét của khách hàng</NavLink>
+                            <NavLink to={ROUTES.CONTACT_PAGE} className="nav-item nav-link" activeclassname="text-primary">Liên hệ</NavLink>
                         </div>
                         <div className="d-flex m-3 me-0">
                             <button className="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i className="fas fa-search text-primary"></i></button>
-                            <Link to={ROUTES.CART_PAGE} className="position-relative me-4 my-auto">
+                            <NavLink to={ROUTES.CART_PAGE} className="position-relative me-4 my-auto" activeclassname="text-primary">
                                 <i className="fa fa-shopping-bag fa-2x"></i>
                                 <span className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style={{ top: "-5px", left: "15px", height: "20px", minWidth: "20px" }}>{cartItemCount}</span>
-                            </Link>
-                            <Link to={ROUTES.WISHLIST_PAGE} className="position-relative me-4 my-auto">
+                            </NavLink>
+                            <NavLink to={ROUTES.WISHLIST_PAGE} className="position-relative me-4 my-auto" activeclassname="text-primary">
                                 <i className="fa fa-heart fa-2x"></i>
                                 <span className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style={{ top: "-5px", left: "15px", height: "20px", minWidth: "20px" }}>{wishListsCount}</span>
-                            </Link>
+                            </NavLink>
                             <div className='user-container'>
                                 <div className="position-relative my-auto">
                                     <button className="btn btn-link dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
