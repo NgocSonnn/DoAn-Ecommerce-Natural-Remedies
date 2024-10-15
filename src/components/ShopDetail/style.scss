@@ -20,6 +20,25 @@
     color: #679d06;
 }
 
+.wishList-style:hover {
+    .wishList-style-icon {
+        transform: scale(1.7);
+    }
+}
+
+.style-wishList-true {
+    background-color: white !important;
+
+    .wishList-style-icon {
+        color: #ff4d4d;
+        transform: scale(1.7);
+    }
+}
+
+.style-wishList-false {
+    background-color: #ffb524 !important;
+}
+
 .form-comment-container {
 
     input,

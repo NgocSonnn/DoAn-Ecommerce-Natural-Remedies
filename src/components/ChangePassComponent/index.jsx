@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Input, Form, Select, DatePicker, message } from 'antd';
+import { Button, Input, Form, Select, DatePicker, message, Modal } from 'antd';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { UserOutlined, PhoneOutlined, MailOutlined, HomeOutlined, LockOutlined } from '@ant-design/icons';
+import { UserOutlined, PhoneOutlined, MailOutlined, HomeOutlined, LockOutlined, EditOutlined } from '@ant-design/icons';
 import * as Yup from 'yup';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -29,6 +29,7 @@ const ChangePassComponent = () => {
     const phoneValidation = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
     const emailValidation = /^[a-z][a-z0-9_.]{5,32}@[a-z0-9]{2,}(.[a-z0-9]{2,4}){1,2}$/;
 
+
     const schema = Yup.object().shape({
         fullName: Yup.string().required("Vui lòng nhập đầy đủ họ và tên"),
         phoneNumber: Yup.string()
@@ -51,6 +52,13 @@ const ChangePassComponent = () => {
         ward: Yup.string().required("Vui lòng chọn phường/xã"),
         streetAddress: Yup.string().required("Vui lòng nhập địa chỉ chi tiết"),
     });
+    const formatEmail = (email) => {
+        if (!email || !email.includes('@')) return email;
+        const [username, domain] = email.split('@');
+        if (username.length <= 4) return email;
+        const maskedUsername = username.slice(0, 4) + '*'.repeat(username.length - 4);
+        return `${maskedUsername}@${domain}`;
+    };
     const { control, handleSubmit, formState: { errors }, reset, } = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -58,7 +66,6 @@ const ChangePassComponent = () => {
             phoneNumber: userInfo?.phoneNumber || '',
             email: userInfo?.email || '',
             password: userInfo?.password || '',
-            confirmPassword: userInfo?.confirmPassword || '',
             birthDay: userInfo?.birthDay ? dayjs(userInfo.birthDay) : null,
             gender: userInfo?.gender || '',
             province: userInfo?.province || '',
@@ -171,11 +178,76 @@ const ChangePassComponent = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProvince, selectedDistrict]);
 
+    const [newEmailState, setNewEmailState] = useState('');
+    const [newPassWordlState, setNewPassWordlState] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [formPassword] = Form.useForm();
+
+    const handleChangePassword = () => {
+        formPassword.validateFields()
+            .then(values => {
+                const { currentPassword, newPassword } = values;
+                if (currentPassword !== userInfo?.password) {
+                    message.error('Mật khẩu cũ không chính xác!');
+                    return;
+                }
+                dispatch(actUpdateUserById({
+                    id: userInfo?.id,
+                    userUpdate: { ...userInfo, password: newPassword }
+                }));
+                setNewPassWordlState(newPassword)
+                message.success('Đã thay đổi mật khẩu thành công!');
+                resetPasswordFields();
+            })
+            .catch(info => {
+                console.log('Validate Failed:', info);
+            });
+    };
+
+    const resetPasswordFields = () => {
+        formPassword.resetFields();
+        setIsModalVisible(false);
+    };
+
+    const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
+    const [formEmail] = Form.useForm();
+
+    const handleChangeEmail = () => {
+        formEmail.validateFields()
+            .then(values => {
+                const { currentEmail, newEmail } = values;
+                if (currentEmail !== userInfo?.email) {
+                    message.error('Email cũ không chính xác!');
+                    return;
+                }
+                dispatch(actUpdateUserById({
+                    id: userInfo?.id,
+                    userUpdate: { ...userInfo, email: newEmail }
+                }));
+                setNewEmailState(newEmail)
+                message.success('Đã thay đổi email thành công!');
+                resetEmailFields();
+            })
+            .catch(info => {
+                console.log('Validate Failed:', info);
+            });
+    };
+
+    const resetEmailFields = () => {
+        formEmail.resetFields();
+        setIsEmailModalVisible(false);
+    };
+
+
     const onSubmit = (formValue) => {
         const updatedFormValue = {
             ...formValue,
             birthDay: dayjs(formValue.birthDay).format(),
+            password: newPassWordlState || userInfo.password,
+            confirmPassword: newPassWordlState || userInfo.confirmPassword,
+            email: newEmailState || userInfo.email
         };
+
         dispatch(actUpdateUserById({
             id: userInfo?.id,
             userUpdate: updatedFormValue
@@ -246,62 +318,58 @@ const ChangePassComponent = () => {
                             )}
                         />
                     </Form.Item>
-
-                    <Form.Item
-                        name="email"
-                        label="Email"
-                        validateStatus={errors.email ? "error" : ""}
-                        help={errors.email?.message}
-                    >
-                        <Controller
+                    <Form.Item style={{ display: "flex", justifyContent: "space-between" }}>
+                        <Form.Item
+                            style={{ width: "600px", margin: 0 }}
                             name="email"
-                            control={control}
-                            render={({ field }) => (
-                                <Input
-                                    prefix={<MailOutlined className="site-form-item-icon" />}
-                                    placeholder="Địa chỉ email"
-                                    {...field}
-                                />
-                            )}
-                        />
+                            label="Email"
+                            validateStatus={errors.email ? "error" : ""}
+                            help={errors.email?.message}
+                        >
+                            <Controller
+                                name="email"
+                                control={control}
+                                render={({ field }) => (
+                                    <Input
+                                        prefix={<MailOutlined className="site-form-item-icon" />}
+                                        placeholder="Địa chỉ email"
+                                        {...field}
+                                        value={formatEmail(userInfo.email) || formatEmail(newEmailState)}
+                                        disabled
+                                    />
+                                )}
+                            />
+                        </Form.Item>
+                        <Button type="link" onClick={() => setIsEmailModalVisible(true)}>
+                            <EditOutlined />
+                        </Button>
                     </Form.Item>
-
-                    <Form.Item
-                        name="password"
-                        label="Mật khẩu"
-                        validateStatus={errors.password ? "error" : ""}
-                        help={errors.password?.message}
-                    >
-                        <Controller
+                    <Form.Item style={{ display: "flex", justifyContent: "space-between" }}>
+                        <Form.Item
+                            style={{ width: "600px", margin: 0 }}
                             name="password"
-                            control={control}
-                            render={({ field }) => (
-                                <Input.Password
-                                    prefix={<LockOutlined className="site-form-item-icon" />}
-                                    placeholder="Mật khẩu"
-                                    {...field}
-                                />
-                            )}
-                        />
-                    </Form.Item>
+                            label="Mật khẩu"
+                            validateStatus={errors.password ? "error" : ""}
+                            help={errors.password?.message}
+                        >
+                            <Controller
+                                name="password"
+                                control={control}
+                                render={({ field }) => (
+                                    <Input
+                                        type="password"
+                                        prefix={<LockOutlined className="site-form-item-icon" />}
+                                        placeholder="Mật khẩu"
+                                        {...field}
+                                        disabled
+                                    />
+                                )}
+                            />
+                        </Form.Item>
+                        <Button type="link" onClick={() => setIsModalVisible(true)}>
+                            <EditOutlined />
 
-                    <Form.Item
-                        name="confirmPassword"
-                        label="Nhập lại mật khẩu"
-                        validateStatus={errors.confirmPassword ? "error" : ""}
-                        help={errors.confirmPassword?.message}
-                    >
-                        <Controller
-                            name="confirmPassword"
-                            control={control}
-                            render={({ field }) => (
-                                <Input.Password
-                                    prefix={<LockOutlined className="site-form-item-icon" />}
-                                    placeholder="Xác nhận mật khẩu"
-                                    {...field}
-                                />
-                            )}
-                        />
+                        </Button>
                     </Form.Item>
 
                     <Form.Item
@@ -468,6 +536,113 @@ const ChangePassComponent = () => {
                     </Form.Item>
                 </Form>
             </div>
+            <Modal
+                className='modal-changepass'
+                title="Thay đổi mật khẩu"
+                open={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                footer={[
+                    <Button key="back" onClick={() => setIsModalVisible(false)}>
+                        Huỷ
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={handleChangePassword}>
+                        Lưu
+                    </Button>
+                ]}
+            >
+                <Form form={formPassword} layout="vertical">
+                    <Form.Item
+                        name="currentPassword"
+                        label="Mật khẩu cũ"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu cũ!' }]}
+                    >
+                        <Input.Password placeholder="Nhập mật khẩu cũ" />
+                    </Form.Item>
+                    <Form.Item
+                        name="newPassword"
+                        label="Mật khẩu mới"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                            { max: 12, message: 'Mật khẩu không được vượt quá 12 ký tự!' },
+                        ]}
+                    >
+                        <Input.Password placeholder="Nhập mật khẩu mới" />
+                    </Form.Item>
+                    <Form.Item
+                        name="confirmPassword"
+                        label="Xác nhận mật khẩu mới"
+                        dependencies={['newPassword']}
+                        rules={[
+                            { required: true, message: 'Vui lòng xác nhận mật khẩu mới!' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('newPassword') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password placeholder="Xác nhận mật khẩu mới" />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
+                className='modal-changepass'
+                title="Thay đổi Email"
+                open={isEmailModalVisible}
+                onCancel={() => setIsEmailModalVisible(false)}
+                footer={[
+                    <Button key="back" onClick={() => setIsEmailModalVisible(false)}>
+                        Huỷ
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={handleChangeEmail}>
+                        Lưu
+                    </Button>
+                ]}
+            >
+                <Form form={formEmail} layout="vertical">
+                    <Form.Item
+                        name="currentEmail"
+                        label="Email cũ"
+                        rules={[{ required: true, message: 'Vui lòng nhập email cũ!' }]}
+                    >
+                        <Input placeholder="Nhập email cũ" />
+                    </Form.Item>
+                    <Form.Item
+                        name="newEmail"
+                        label="Email mới"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email mới!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input placeholder="Nhập email mới" />
+                    </Form.Item>
+                    <Form.Item
+                        name="confirmEmail"
+                        label="Xác nhận email mới"
+                        dependencies={['newEmail']}
+                        rules={[
+                            { required: true, message: 'Vui lòng xác nhận email mới!' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('newEmail') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error('Email xác nhận không khớp!'));
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input placeholder="Xác nhận email mới" />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
         </div>
     )
 }

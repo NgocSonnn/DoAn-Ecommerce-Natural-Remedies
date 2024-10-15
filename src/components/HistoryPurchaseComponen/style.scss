@@ -45,6 +45,7 @@
 }
 
 .modal-history {
+    font-size: 24px;
     width: 900px !important;
 
     .ant-modal-title {
@@ -59,6 +60,9 @@
     .ant-modal-body {
         padding: 24px;
 
+        .ant-col .ant-form-item-label {
+            font-size: 24px !important;
+        }
 
     }
 
@@ -68,6 +72,9 @@
     }
 
     .ant-modal-footer {
+        display: flex;
+        justify-content: space-between;
+
         button {
             color: white;
             background-color: #81c408;

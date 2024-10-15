@@ -94,7 +94,8 @@ const productSlice = createSlice({
                     state.params._order = "desc";
                     break;
                 default:
-
+                    state.params._sort = null;
+                    state.params._order = null;
                     break;
             }
         },
@@ -103,7 +104,7 @@ const productSlice = createSlice({
             switch (action.payload) {
                 case '0':
                     state.params.price_gte = 0;
-                    state.params.price_lte = 500
+                    state.params.price_lte = 600
                     state.params._sort = "id";
                     state.params._order = "asc";
                     break;
@@ -138,17 +139,20 @@ const productSlice = createSlice({
                     state.params._order = "asc";
                     break;
                 case '6':
-                    state.params.price_gte = 499;
+                    state.params.price_gte = 500;
                     state.params.price_lte = 599
                     state.params._sort = "price";
                     state.params._order = "asc";
                     break;
                 default:
+                    state.params.price_gte = null;
+                    state.params.price_lte = null;
+                    state.params._sort = null;
+                    state.params._order = null;
 
                     break;
             }
         },
-
         setFilterProductBrandId: (state, action) => {
             state.brandId = action.payload
         },
@@ -162,8 +166,26 @@ const productSlice = createSlice({
             state.params._order = 'desc'
         },
         setSearchParams: (state, action) => {
-            const { params } = action.payload;
+            const params = action.payload;
             state.params = { ...state.params, ...params };
+        },
+        actClearFilter: (state, action) => {
+            state.searchKey = ''
+            state.params = {
+                _sort: null,
+                _order: null,
+                price_lte: null,
+                price_gte: null,
+                brandId: null,
+                typeId: null
+            }
+            state.pagination = {
+                currentPage: 1,
+                limitPerPage: 9,
+                total: 0,
+            }
+            state.sortedName = ''
+            state.sortedPrice = ''
         },
     },
     extraReducers: (builder) => {
@@ -193,5 +215,5 @@ const productSlice = createSlice({
         })
     }
 })
-export const { setLoading, setNewPage, setSearchKey, setSortField, setSortNameProduct, setBestSellProduct, setSortPriceProduct, setSearchParams, setFilterProductBrandId, setFilterProductTypeId } = productSlice.actions
+export const { setLoading, setNewPage, setSearchKey, setSortField, setSortNameProduct, setBestSellProduct, setSortPriceProduct, setSearchParams, setFilterProductBrandId, setFilterProductTypeId, actClearFilter } = productSlice.actions
 export const productReducer = productSlice.reducer

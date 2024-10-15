@@ -10,7 +10,7 @@ const initialState = {
     userInfo: JSON.parse(localStorage.getItem("userInfo")) || {},
 
 }
-export const actCreateNewUser = createAsyncThunk("users,actCreateNewUser", async (formValue, thunkAPI) => {
+export const actCreateNewUser = createAsyncThunk("users/actCreateNewUser", async (formValue, thunkAPI) => {
     try {
         const users = await userApis.getAllUsers()
         const { email, phoneNumber } = formValue;
@@ -26,7 +26,6 @@ export const actCreateNewUser = createAsyncThunk("users,actCreateNewUser", async
             return formValue;
         }
     } catch (error) {
-        console.log(error, "error actCreateNewUser");
         return thunkAPI.rejectWithValue("Đã xảy ra lỗi khi tạo tài khoản");
     }
 })
@@ -70,11 +69,19 @@ export const actUpdateUserById = createAsyncThunk(
             thunkAPI.dispatch(actFetchAllUsers());
             return userUpdate;
         } catch (error) {
-            console.log(error, "error actUpdateUserById");
             return thunkAPI.rejectWithValue("Đã xảy ra lỗi khi cập nhật tài khoản");
         }
     }
 );
+export const actCheckUserAndResetPassword = createAsyncThunk("users/actCheckUserAndResetPassword", async ({ userId }, thunkAPI) => {
+    try {
+        const user = await userApis.resetPassword(userId);
+        return user
+
+    } catch (error) {
+        return thunkAPI.rejectWithValue("Thông tin không tồn tại!");
+    }
+})
 
 
 const userSlice = createSlice({
@@ -135,9 +142,11 @@ const userSlice = createSlice({
 
         builder.addCase(actUpdateUserById.fulfilled, (state, action) => {
             state.userInfo = action.payload;
-            message.success("Cập nhật tài khoản thành công!");
             localStorage.setItem("userInfo", JSON.stringify(action.payload));
         });
+        builder.addCase(actCheckUserAndResetPassword.fulfilled, (state, action) => {
+            state.users = action.payload
+        })
     }
 })
 export const { setLoading, loginSuccess, setUserInfo, logout } = userSlice.actions

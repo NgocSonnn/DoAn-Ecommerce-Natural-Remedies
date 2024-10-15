@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { actFetchAllProduct, actFetchProductById, setBestSellProduct, setSearchKey } from '../../redux/features/product/productSlice'
+import { actFetchAllProduct, actFetchProductById, setSearchKey } from '../../redux/features/product/productSlice'
 import { generatePath, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import './style.scss'
@@ -9,10 +9,10 @@ import { Form, Input, Button, Rate, Row, Col, Pagination, Spin, Alert, Modal, me
 import { actAddComment, actFetchAllComments, setNewPage } from '../../redux/features/comment/commentSlice'
 import { format } from 'date-fns'
 import { HeartFilled } from '@ant-design/icons'
-import { actAddWishList, actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice'
+import { actAddWishList, actDeleteWishListById, actFetchAllWishLists, actFetchAllWishListsByUserId } from '../../redux/features/wishList/wishListSlice'
 
 const ShopDetail = () => {
-    const { products, productInfo } = useSelector((state) => state.product)
+    const { products, productInfo, searchKey } = useSelector((state) => state.product)
     const comments = useSelector((state) => state.comment.comments);
     const { pagination, sortField, sortOrder } = useSelector((state) => state.comment);
     const isLoading = useSelector((state) => state.comment.isLoading);
@@ -25,20 +25,35 @@ const ShopDetail = () => {
     const params = useParams()
     const [quantity, setquantity] = useState(1)
     const [searchParams, setSearchParams] = useSearchParams();
+    const [inputSearchKey, setInputSearchKey] = useState('')
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [anonymous, setAnonymous] = useState(false);
+
+    useEffect(() => {
+        if (userInfo) {
+            dispatch(actFetchAllWishListsByUserId({ userId: userInfo.id }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
 
-    const handleSortBestSeller = (event) => {
-        event.preventDefault();
-        dispatch(setBestSellProduct(products))
-        navigate(ROUTES.SHOP_PAGE)
+    const handleSortBestSeller = () => {
+        navigate(ROUTES.BESTSELLER_PAGE)
     }
     const handleChangeInputSearch = (event) => {
         const value = event.target.value
-        dispatch(setSearchKey(value))
+        setInputSearchKey(value)
     }
     const handleSubmitSearch = (event) => {
         event.preventDefault();
-        navigate(ROUTES.SHOP_PAGE)
+        dispatch(setSearchKey(inputSearchKey))
+        dispatch(actFetchAllProduct({
+            _page: 1,
+            _limit: pagination.limitPerPage,
+            q: searchKey,
+            ...params,
+        }))
+        navigate(`${ROUTES.SHOP_PAGE}?_page=1&q=${encodeURIComponent(inputSearchKey)}`);
     }
     const handleToAddCart = () => {
         const productToAdd = {
@@ -59,6 +74,7 @@ const ShopDetail = () => {
 
     const relatedProductList = products.filter(products => (products.brandId === productInfo.brandId)).sort((a, b) => b.purchase - a.purchase).slice(0, 8)
 
+
     const renderRelatedProduct = (relatedProduct) => {
         return relatedProduct.map((product) => {
             const handleClickToProductDetail = () => {
@@ -66,6 +82,9 @@ const ShopDetail = () => {
                 navigate(generatePath(ROUTES.SHOP_DETAIL_PAGE, { productId }))
                 window.location.reload();
             }
+            const existedItem = wishLists.find(
+                (item) => item.userId === userInfo.id && item.wishList.productId === product.id
+            );
             const handleToAddWishList = () => {
                 if (!isLogin) {
                     Modal.confirm({
@@ -89,17 +108,22 @@ const ShopDetail = () => {
                     nameProduct: product.nameProduct,
                     quantity: 1,
                 }
-                const existedItem = wishLists.find(
-                    (item) => item.userId === userInfo.id && item.wishList.productId === productWishList.productId
-                );
-
                 if (existedItem) {
-                    message.error("Bạn đã thêm sản phẩm này vào danh sách yêu thích!");
+                    const itemIdToDelete = existedItem.id;
+                    dispatch(actDeleteWishListById(itemIdToDelete))
+                        .then(() => dispatch(actFetchAllWishListsByUserId({
+                            userId: userInfo.id
+                        }))).then(() => {
+                            dispatch(actFetchAllWishLists());
+                        });
                 } else {
                     dispatch(actAddWishList({
                         wishList: productWishList,
                         userId: userInfo.id
-                    })).then(() => dispatch(actFetchAllWishLists()));
+                    })).then(() => {
+                        dispatch(actFetchAllWishLists());
+                        message.success("Sản phẩm đã được thêm vào danh sách yêu thích!");
+                    })
                 }
             }
             const handleToAddCart = () => {
@@ -119,7 +143,7 @@ const ShopDetail = () => {
                     <div className="vesitable-img">
                         <img style={{ height: "320px", objectFit: "cover" }} src={product.productImg} className="img-fluid w-100 rounded-top" alt="" />
                     </div>
-                    <div onClick={handleToAddWishList} className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: "10px", left: "10px", cursor: "pointer" }}><HeartFilled /></div>
+                    <div onClick={handleToAddWishList} className={`wishList-style text-white bg-secondary px-3 py-1 rounded position-absolute ${existedItem ? "style-wishList-true" : "style-wishList-false"}`} style={{ top: "10px", left: "10px", cursor: "pointer" }}><HeartFilled className='wishList-style-icon' /></div>
                     <div style={{ textAlign: "center" }} className="p-4 pb-0 rounded-bottom">
                         <h4 onClick={handleClickToProductDetail} className='product-name-style'>{product.nameProduct}</h4>
                         <p>{product.description}</p>
@@ -135,14 +159,24 @@ const ShopDetail = () => {
     }
     const [form] = Form.useForm();
 
-    const onFinish = (values) => {
+    const onFinish = () => {
+        setIsModalVisible(true);
+    };
+    const handleModalOk = (values) => {
         const updatedValues = {
             productId: Number(params.productId),
             ...values,
-            createdAt: new Date().toISOString()
+            fullName: anonymous ? 'Ẩn danh' : values.fullName,
+            phoneNumber: anonymous ? 'Ẩn danh' : values.phoneNumber,
+            createdAt: new Date().toISOString(),
         };
-        dispatch(actAddComment(updatedValues))
+        dispatch(actAddComment(updatedValues));
         form.resetFields();
+        setIsModalVisible(false);
+    };
+
+    const handleModalCancel = () => {
+        setIsModalVisible(false);
     };
 
     const filterCommentByProductId = comments.filter(comment =>
@@ -174,7 +208,8 @@ const ShopDetail = () => {
             _page: newPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
-            _order: sortOrder
+            _order: sortOrder,
+            productId: params.productId
         }));
     };
     const renderComments = (_comment) => {
@@ -200,7 +235,7 @@ const ShopDetail = () => {
                         <p className="mb-2" style={{ fontSize: "14px" }}>Ngày: {date}</p>
                         <div style={{ alignItems: "center" }} className="d-flex justify-content-between">
                             <h5 style={{ margin: 0 }}>Họ tên: {fullName}</h5>
-                            <p style={{ margin: 0 }}>Số điện thoại: {phoneNumber}</p>
+                            <h6 style={{ margin: 0 }}>Số điện thoại: {phoneNumber}</h6>
                             <div style={{ margin: 0 }} className="d-flex mb-3">
                                 {stars}
                             </div>
@@ -410,7 +445,7 @@ const ShopDetail = () => {
                         <div className="row g-4 fruite">
                             <div className="col-lg-12">
                                 <form onSubmit={handleSubmitSearch} className="input-group w-100 mx-auto d-flex mb-4">
-                                    <input type="search" className="form-control p-3" placeholder="Tìm kiếm" aria-describedby="search-icon-1" onChange={handleChangeInputSearch} />
+                                    <input value={inputSearchKey} type="search" className="form-control p-3" placeholder="Tìm kiếm" aria-describedby="search-icon-1" onChange={handleChangeInputSearch} />
                                     <button type='submit' style={{ border: "none", backgroundColor: "transparent" }}><span style={{ height: "58px", borderRadius: "0 10px 10px 0" }} id="search-icon-1" className="input-group-text p-3"><i className="fa fa-search"></i></span></button>
                                 </form>
                                 <div className="mb-4">
@@ -512,6 +547,22 @@ const ShopDetail = () => {
                     </div>
                 </div>
             </div>
+            <Modal
+                title="Bạn có muốn ẩn danh không?"
+                open={isModalVisible}
+                onOk={() => handleModalOk(form.getFieldsValue())}
+                onCancel={handleModalCancel}
+                footer={[
+                    <Button key="back" onClick={() => { setAnonymous(false); handleModalOk(form.getFieldsValue()); }}>
+                        Không
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={() => { setAnonymous(true); handleModalOk(form.getFieldsValue()); }}>
+                        Có, ẩn danh
+                    </Button>
+                ]}
+            >
+                <p>Bạn có chắc chắn muốn gửi ý kiến của bạn dưới dạng ẩn danh không?</p>
+            </Modal>
         </div >
     )
 }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { actFetchAllProduct, setSearchKey } from '../../redux/features/product/productSlice'
 import { useNavigate } from 'react-router-dom'
@@ -8,13 +8,15 @@ const HeroComponent = () => {
     const { pagination, searchKey, params, filters } = useSelector((state) => state.product)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const [inputSearchKey, setInputSearchKey] = useState('')
 
     const handleChangeInputSearch = (event) => {
         const value = event.target.value
-        dispatch(setSearchKey(value))
+        setInputSearchKey(value)
     }
     const handleSubmitSearch = (event) => {
         event.preventDefault();
+        dispatch(setSearchKey(inputSearchKey))
         dispatch(actFetchAllProduct({
             _page: 1,
             _limit: pagination.limitPerPage,
@@ -22,7 +24,7 @@ const HeroComponent = () => {
             ...params,
             ...filters
         }))
-        navigate(ROUTES.SHOP_PAGE)
+        navigate(`${ROUTES.SHOP_PAGE}?_page=1&q=${encodeURIComponent(inputSearchKey)}`);
     }
 
 
@@ -34,7 +36,7 @@ const HeroComponent = () => {
                         <h3 className="mb-3 text-secondary">"Giải pháp tự nhiên để cải thiện sức khỏe"</h3>
                         <h1 className="mb-5 display-3 text-primary">Natural Remedies có đầy đủ dược liệu từ thiên nhiên</h1>
                         <form onSubmit={handleSubmitSearch} className="position-relative mx-auto">
-                            <input onChange={handleChangeInputSearch} className="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="search" placeholder="Tìm kiếm" />
+                            <input value={inputSearchKey} onChange={handleChangeInputSearch} className="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="search" placeholder="Tìm kiếm" />
                             <button type="submit" className="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style={{ top: 0, right: "25%" }}>Tìm kiếm</button>
                         </form>
                     </div>

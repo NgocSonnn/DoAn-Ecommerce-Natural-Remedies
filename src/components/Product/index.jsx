@@ -1,24 +1,33 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useDispatch, useSelector } from 'react-redux'
 import { actAddProductToCarts } from '../../redux/features/cart/cartSlice'
 import './style.scss'
 import { HeartFilled } from '@ant-design/icons'
-import { actAddWishList, actFetchAllWishLists } from '../../redux/features/wishList/wishListSlice'
+import { actAddWishList, actDeleteWishListById, actFetchAllWishLists, actFetchAllWishListsByUserId } from '../../redux/features/wishList/wishListSlice'
 import { message, Modal } from 'antd'
 
 const Product = (props) => {
     const naviage = useNavigate()
     const dispatch = useDispatch()
-    const wishLists = useSelector(state => state.wishLists.wishLists)
+    const { wishLists } = useSelector(state => state.wishLists)
     const isLogin = useSelector(state => state.user.isLogin)
-
     const userInfo = useSelector(state => state.user.userInfo)
+    useEffect(() => {
+        if (userInfo) {
+            dispatch(actFetchAllWishListsByUserId({ userId: userInfo.id }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
+
     const handleClickToProductDetail = () => {
         const productId = props.product.id
         naviage(generatePath(ROUTES.SHOP_DETAIL_PAGE, { productId }))
     }
+    const existedItem = wishLists.find(
+        (item) => item.userId === userInfo.id && item.wishList.productId === props.product.id
+    );
     const handleToAddWishList = () => {
         if (!isLogin) {
             Modal.confirm({
@@ -43,17 +52,23 @@ const Product = (props) => {
             quantity: 1,
         }
 
-        const existedItem = wishLists.find(
-            (item) => item.userId === userInfo.id && item.wishList.productId === productWishList.productId
-        );
-
         if (existedItem) {
-            message.error("Bạn đã thêm sản phẩm này vào danh sách yêu thích!");
+            const itemIdToDelete = existedItem.id;
+
+            dispatch(actDeleteWishListById(itemIdToDelete))
+                .then(() => dispatch(actFetchAllWishListsByUserId({
+                    userId: userInfo.id
+                }))).then(() => {
+                    dispatch(actFetchAllWishLists());
+                });
         } else {
             dispatch(actAddWishList({
                 wishList: productWishList,
                 userId: userInfo.id
-            })).then(() => dispatch(actFetchAllWishLists()));
+            })).then(() => {
+                dispatch(actFetchAllWishLists());
+                message.success("Sản phẩm đã được thêm vào danh sách yêu thích!");
+            })
         }
     }
 
@@ -77,7 +92,7 @@ const Product = (props) => {
                 <div className="fruite-img">
                     <img style={{ height: "300px", objectFit: "cover" }} src={props.product.productImg} className="img-fluid w-100 rounded-top" alt="" />
                 </div>
-                <div onClick={handleToAddWishList} className="text-white bg-secondary px-3 py-1 rounded position-absolute" style={{ top: "10px", left: "10px", cursor: "pointer" }}><HeartFilled /></div>
+                <div onClick={handleToAddWishList} className={`wishList-style text-white bg-secondary px-3 py-1 rounded position-absolute ${existedItem ? "style-wishList-true" : "style-wishList-false"}`} style={{ top: "10px", left: "10px", cursor: "pointer" }}><HeartFilled className='wishList-style-icon' /></div>
                 <div style={{ textAlign: "center" }} className="p-4  border-top-0 rounded-bottom">
                     <h4 onClick={handleClickToProductDetail} className='product-name-style'>{props.product.nameProduct}</h4>
                     <p> {props.product.description}</p>

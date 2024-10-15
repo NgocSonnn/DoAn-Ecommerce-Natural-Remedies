@@ -9,6 +9,7 @@ export const ROUTES = {
     PAGE_404: "/page404",
     DRY_PAGE: "/shop/drypage",
     WET_PAGE: "/shop/wetpage",
+    BESTSELLER_PAGE: "/shop/bestseller",
     SALENREFUND_PAGE: '/saleandrefund',
     PRIVACYPOLICY_PAGE: "/privacypolicy",
     TERMOFUSE_PAGE: "/termofuse",

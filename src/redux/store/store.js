@@ -6,6 +6,7 @@ import { checkOutReducer } from "../features/checkOut/checkOutSlice";
 import { orderReducer } from "../features/order/orderSlice";
 import { commentReducer } from "../features/comment/commentSlice";
 import { wishListReducer } from "../features/wishList/wishListSlice";
+import { couponReducer } from "../features/coupons/couponsSlice";
 
 export const store = configureStore({
     reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
         checkOut: checkOutReducer,
         order: orderReducer,
         comment: commentReducer,
-        wishLists: wishListReducer
+        wishLists: wishListReducer,
+        coupons: couponReducer
     }
 }) 

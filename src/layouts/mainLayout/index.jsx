@@ -49,6 +49,9 @@ const MainLayout = () => {
             case ROUTES.DRY_PAGE:
                 title = 'Sản phẩm khô';
                 break;
+            case ROUTES.BESTSELLER_PAGE:
+                title = 'Sản phẩm bán chạy';
+                break;
             case ROUTES.PRIVACYPOLICY_PAGE:
                 title = 'Chính sách bảo mật';
                 break;

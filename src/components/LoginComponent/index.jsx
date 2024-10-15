@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Form, Input, Button, message, Modal, Spin } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import * as Yup from 'yup';
@@ -8,14 +8,17 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, Controller } from 'react-hook-form';
 import './style.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { actLogin } from '../../redux/features/user/userSlice';
+import { actCheckUserAndResetPassword, actFetchAllUsers, actLogin } from '../../redux/features/user/userSlice';
 
 
 
 const LoginComponent = () => {
-    const { isLogin } = useSelector(state => state.user)
+    const { isLogin, users } = useSelector(state => state.user)
     const navigate = useNavigate();
     const dispatch = useDispatch()
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
     useEffect(() => {
         if (isLogin) {
             navigate(ROUTES.PAGE_404)
@@ -48,9 +51,67 @@ const LoginComponent = () => {
         }
     };
 
+    const handleOpenModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+    };
     const handleRedirectToRegisterPage = () => {
         navigate(ROUTES.REGISTER_PAGE);
     };
+
+    const resetPasswordSchema = Yup.object().shape({
+        fullName: Yup.string().required("Vui lòng nhập đầy đủ họ và tên"),
+        phoneNumber: Yup.string().required('Vui lòng nhập số điện thoại!'),
+        email: Yup.string().email('Email không hợp lệ!').required('Vui lòng nhập email!'),
+    });
+
+    const resetPasswordMethod = useForm({
+        defaultValues: {
+            fullName: '',
+            phoneNumber: '',
+            email: '',
+        },
+        resolver: yupResolver(resetPasswordSchema),
+    });
+
+    const { control: resetControl, handleSubmit: handleResetSubmit, formState: { errors: resetErrors }, reset: resetResetPassWord } = resetPasswordMethod;
+    useEffect(() => {
+        dispatch(actFetchAllUsers())
+    }, [dispatch])
+
+    const onResetValid = async (formValue) => {
+        setIsLoading(true);
+        const { fullName, phoneNumber, email } = formValue;
+        const foundUser = users.find(
+            (user) =>
+                user.fullName === fullName &&
+                user.phoneNumber === phoneNumber &&
+                user.email === email
+        );
+        if (foundUser) {
+            setTimeout(async () => {
+                try {
+                    dispatch(actCheckUserAndResetPassword({ userId: foundUser.id }));
+                    message.success("Mật khẩu đã được thay đổi thành công!");
+                    resetResetPassWord();
+                    handleCloseModal();
+                } catch (error) {
+                    message.error("Đã xảy ra lỗi, vui lòng thử lại!");
+                } finally {
+                    setIsLoading(false);
+                }
+            }, 3000);
+
+        } else {
+            message.error("Thông tin không tồn tại!")
+            resetResetPassWord();
+            setIsLoading(false)
+        }
+    };
+
 
     return (
         <div className="login-form-container">
@@ -97,18 +158,102 @@ const LoginComponent = () => {
                 </Form.Item>
 
                 <Form.Item>
-                    <Button
-                        style={{ border: "none", display: 'flex', justifyContent: 'end', paddingBottom: '10px', color: '#81c408', fontSize: '16px' }}
-                        className="login-form-forgot"
-                        onClick={handleRedirectToRegisterPage}
-                    >
-                        Bạn chưa có tài khoản?
-                    </Button>
+                    <Form.Item>
+                        <Button
+                            style={{ border: "none", paddingBottom: '10px', color: '#81c408', fontSize: '16px' }}
+                            className="login-form-forgot"
+                            onClick={handleRedirectToRegisterPage}>
+                            Bạn chưa có tài khoản?
+                        </Button>
+                        <Button style={{ border: "none", paddingBottom: '10px', color: '#81c408', fontSize: '16px' }}
+                            onClick={handleOpenModal}
+                            className="login-form-forgot">Quên mật khẩu?
+                        </Button>
+                    </Form.Item>
                     <Button type="primary" htmlType="submit">
                         Đăng Nhập
                     </Button>
+
                 </Form.Item>
             </Form>
+            <Modal
+                className='modal-login'
+                title="Đặt lại mật khẩu"
+                open={isModalVisible}
+                onCancel={handleCloseModal}
+                footer={null}
+            >
+                {isLoading ? (<Spin size='lagrge'></Spin>) :
+                    (<Form
+                        name="reset-password"
+                        onFinish={handleResetSubmit(onResetValid)}
+                        style={{ maxWidth: '100%' }}
+                    >
+                        <Form.Item>
+                            <h5>Để lấy lại mật khẩu bạn cần nhập đúng tên, số điện thoại và email. Sau khi nhập đúng thì mật khẩu của bạn sẽ tự động đổi thành "123456" và bạn có thể thay đổi mật khẩu mới ở thông tin cá nhân.</h5>
+                        </Form.Item>
+                        <Form.Item
+                            validateStatus={resetErrors.fullName ? "error" : ""}
+                            help={resetErrors.fullName?.message}
+                        >
+                            <Controller
+                                name="fullName"
+                                control={resetControl}
+                                render={({ field }) => (
+                                    <Input
+                                        prefix={<UserOutlined className="site-form-item-icon" />}
+                                        placeholder="Họ và tên"
+                                        value={field.value}
+                                        {...field}
+                                    />
+                                )}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="phoneNumber"
+                            validateStatus={resetErrors.phoneNumber ? 'error' : ''}
+                            help={resetErrors.phoneNumber?.message}
+                        >
+                            <Controller
+                                name="phoneNumber"
+                                control={resetControl}
+                                render={({ field }) => (
+                                    <Input
+                                        prefix={<PhoneOutlined className="site-form-item-icon" />}
+                                        placeholder="Số điện thoại"
+                                        value={field.value}
+                                        {...field}
+                                    />
+                                )}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="email"
+                            validateStatus={resetErrors.email ? 'error' : ''}
+                            help={resetErrors.email?.message}
+                        >
+                            <Controller
+                                name="email"
+                                control={resetControl}
+                                render={({ field }) => (
+                                    <Input
+                                        prefix={<MailOutlined className="site-form-item-icon" />}
+                                        placeholder="Email"
+                                        value={field.value}
+                                        {...field}
+                                    />
+                                )}
+                            />
+                        </Form.Item>
+
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit">
+                                Gửi yêu cầu
+                            </Button>
+                        </Form.Item>
+                    </Form>)}
+            </Modal>
         </div>
     );
 };

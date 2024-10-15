@@ -12,7 +12,6 @@ const initialState = {
         currentPage: 1,
         limitPerPage: 9,
         total: 8,
-
     },
     searchKey: "",
 };

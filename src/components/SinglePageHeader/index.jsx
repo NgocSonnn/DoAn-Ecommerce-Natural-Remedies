@@ -11,6 +11,7 @@ const SinglePageHeader = (props) => {
         <li className="breadcrumb-item"><Link to={ROUTES.HOME_PAGE}>Trang chủ</Link></li>
         <li className="breadcrumb-item"><Link to={ROUTES.DRY_PAGE}>Sản phẩm khô</Link></li>
         <li className="breadcrumb-item"><Link to={ROUTES.WET_PAGE}>Sản phẩm tươi</Link></li>
+        <li className="breadcrumb-item"><Link to={ROUTES.BESTSELLER_PAGE}>Sản phẩm bán chạy</Link></li>
         <li className="breadcrumb-item active text-white">{props.title}</li>
       </ol>
     </div>

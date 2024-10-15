@@ -15,6 +15,13 @@ const AccountComponent = () => {
     const [districtName, setDistrictName] = useState('');
     const [wardName, setWardName] = useState('');
     const navigate = useNavigate()
+    const formatEmail = (email) => {
+        if (!email || !email.includes('@')) return email;
+        const [username, domain] = email.split('@');
+        if (username.length <= 4) return email;
+        const maskedUsername = username.slice(0, 4) + '*'.repeat(username.length - 4);
+        return `${maskedUsername}@${domain}`;
+    };
     useEffect(() => {
         if (!isLogin) {
             navigate(ROUTES.PAGE_404)
@@ -89,7 +96,7 @@ const AccountComponent = () => {
                     <b>Số điện thoại:</b> <p>{userInfo.phoneNumber}</p>
                 </div>
                 <div className='info-container__form'>
-                    <b>Email:</b> <p>{userInfo.email}</p>
+                    <b>Email:</b> <p>{formatEmail(userInfo.email)}</p>
                 </div>
                 <div className='info-container__form'>
                     <b>Giới tính:</b> <p>{userInfo.gender}</p>

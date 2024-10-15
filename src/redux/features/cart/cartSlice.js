@@ -37,8 +37,23 @@ const cartSlice = createSlice({
         actClearCart: (state, action) => {
             state.carts = []
             localStorage.removeItem(KEY_CARTS_LIST);
-        }
+        },
+        actRePuchase: (state, action) => {
+            const products = action.payload;
+            products.forEach(product => {
+                const existedItemIndex = state.carts.findIndex(
+                    (cart) => cart.id === product.id
+                );
+                if (existedItemIndex > -1) {
+                    state.carts[existedItemIndex].quantity += product.quantity;
+                } else {
+                    state.carts.push({ ...product });
+                }
+            });
+            localStorage.setItem(KEY_CARTS_LIST, JSON.stringify(state.carts));
+            message.success("Các sản phẩm đã được thêm vào giỏ hàng thành công!");
+        },
     }
 })
-export const { actAddProductToCarts, actDeleteProductInCarts, actUpdateQuantityOfProduct, actClearCart } = cartSlice.actions
+export const { actAddProductToCarts, actDeleteProductInCarts, actUpdateQuantityOfProduct, actClearCart, actRePuchase } = cartSlice.actions
 export const cartReducer = cartSlice.reducer

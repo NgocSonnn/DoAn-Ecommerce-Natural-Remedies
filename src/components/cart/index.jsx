@@ -4,35 +4,62 @@ import { ROUTES } from '../../constants/routes';
 import { useDispatch, useSelector } from 'react-redux';
 import { actDeleteProductInCarts, actUpdateQuantityOfProduct } from '../../redux/features/cart/cartSlice';
 import { message, Modal } from 'antd';
+import { actFetchAllCoupons, actUpdateCoupons, setDiscountAmount } from '../../redux/features/coupons/couponsSlice';
 
 const CartComponent = () => {
     const cartItems = useSelector((state) => state.carts?.carts || []);
     const navigate = useNavigate();
     const dispatch = useDispatch()
-    const { carts } = useSelector(state => state.carts)
     const { isLogin } = useSelector((state) => state.user);
+    const [discountCode, setDiscountCode] = useState('');
+    const { coupons, discount } = useSelector((state) => state.coupons);
+
     const handleRedirectCheckOut = () => {
         if (!isLogin) {
             message.warning("Bạn cần đăng nhập để tiếp tục thanh toán. Vui lòng đăng nhập hoặc đăng ký!");
             navigate(ROUTES.LOGIN_PAGE);
             return;
         }
+        if (cartItems.length === 0) {
+            message.warning("Bạn cần thêm sản phẩm để thanh toán")
+            return
+        }
         navigate(ROUTES.CHECKOUT_PAGE)
     }
     const calculateTotal = useCallback(() =>
         cartItems.reduce((total, item) => total + item.price * item.quantity, 0), [cartItems]
     )
+    const calculateTotalDisCount = useCallback(() => {
+        const total = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+        return (total - ((total * discount) / 100))
+    }, [cartItems, discount]
+    )
     const [total, setTotal] = useState(calculateTotal())
+    const [totalDiscount, setTotalDiscount] = useState(calculateTotalDisCount())
+
     useEffect(() => {
         setTotal(calculateTotal());
-    }, [cartItems, calculateTotal]);
+        setTotalDiscount(calculateTotalDisCount());
+        dispatch(actFetchAllCoupons())
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cartItems, calculateTotal, calculateTotalDisCount]);
 
     const formatPrice = (price) => {
         const numberPrice = typeof price === "string" ? parseInt(price) : price;
         return numberPrice
     };
-    const handleApplyDiscount = () => {
-        message.warning("Mã giảm giá sai hoặc đã hết!")
+    const handleApplyDiscount = (event) => {
+        event.preventDefault()
+        const coupon = coupons.find(coupon => coupon.code === discountCode);
+
+        if (coupon && coupon.quantity > 0) {
+            dispatch(actUpdateCoupons(coupon.id));
+            dispatch(setDiscountAmount(coupon.value))
+            message.success("Mã giảm giá đã được áp dụng!");
+        } else {
+            message.warning("Mã giảm giá sai hoặc đã hết!(Coupon phải viết hoa, ví dụ: SUMMER5)");
+        }
+        setDiscountCode('');
     }
     const renderCart = (_cart) => {
         return _cart.map((cart) => {
@@ -109,25 +136,29 @@ const CartComponent = () => {
     return (
         <div className="container-fluid py-5">
             <div className="container py-5">
-                <div className="table-responsive">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Sản phẩm</th>
-                                <th scope="col">Tên</th>
-                                <th scope="col">Giá</th>
-                                <th scope="col">Số lượng</th>
-                                <th scope="col">Tổng cộng</th>
-                                <th scope="col">Xử lý</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {renderCart(carts)}
-                        </tbody>
-                    </table>
-                </div>
+                {cartItems.length === 0 ? (
+                    <p>Giỏ hàng của bạn đang trống.</p>
+                ) : (
+                    <div className="table-responsive">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sản phẩm</th>
+                                    <th scope="col">Tên</th>
+                                    <th scope="col">Giá</th>
+                                    <th scope="col">Số lượng</th>
+                                    <th scope="col">Tổng cộng</th>
+                                    <th scope="col">Xử lý</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {renderCart(cartItems)}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
                 <div className="mt-5">
-                    <input type="text" className="border-0 border-bottom rounded me-5 py-3 mb-4" placeholder="Mã giảm giá" />
+                    <input value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} type="text" className="border-0 border-bottom rounded me-5 py-3 mb-4" placeholder="Mã giảm giá" />
                     <button onClick={handleApplyDiscount} className="btn border-secondary rounded-pill px-4 py-3 text-primary" type="button">Áp dụng mã giảm giá</button>
                 </div>
                 <div className="row g-4 justify-content-end">
@@ -140,16 +171,22 @@ const CartComponent = () => {
                                     <h5 className="mb-0 me-4">Tạm tính:</h5>
                                     <p className="mb-0">{formatPrice(total)}K VNĐ</p>
                                 </div>
-                                <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex justify-content-between mb-4 align-items-center">
                                     <h5 className="mb-0 m-0  me-4">Phí ship:</h5>
                                     <div className="">
                                         <p className="mb-0 m-0">miễn phí</p>
                                     </div>
                                 </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <h5 className="mb-0 m-0  me-4">Giảm giá:</h5>
+                                    <div className="">
+                                        <p className="mb-0 m-0">{discount}%</p>
+                                    </div>
+                                </div>
                             </div>
                             <div className="py-4 mb-4 border-top border-bottom d-flex justify-content-between align-items-center">
                                 <h5 className="mb-0 m-0 ps-4 me-4">Tổng:</h5>
-                                <p className="mb-0 m-0 pe-4">{formatPrice(total)}K VNĐ</p>
+                                <p className="mb-0 m-0 pe-4">{formatPrice(totalDiscount)}K VNĐ</p>
                             </div>
                             <button onClick={handleRedirectCheckOut} className="btn border-secondary rounded-pill px-4 py-3 text-primary mb-4 ms-4">Tiến hành thanh toán</button>
                         </div>

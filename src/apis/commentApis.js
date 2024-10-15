@@ -7,7 +7,7 @@ export const commentApis = {
             {
                 params: {
                     ...params,
-                    _sort: "creatAtComment",
+                    _sort: "createdAt",
                     _order: "desc",
                 },
             }

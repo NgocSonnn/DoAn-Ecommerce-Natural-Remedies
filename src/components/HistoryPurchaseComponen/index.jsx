@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Table, Modal, Button, message, Pagination } from 'antd';
-import { actDeleteOderById, actFetchAllOrders, setNewPage } from '../../redux/features/order/orderSlice';
+import { actFetchAllOrders, setNewPage } from '../../redux/features/order/orderSlice';
 import './style.scss'
-import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 import { ROUTES } from '../../constants/routes';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { actRePuchase } from '../../redux/features/cart/cartSlice';
+import { format, parseISO } from 'date-fns'
 
 const HistoryPurchaseComponent = () => {
     const dispatch = useDispatch();
@@ -16,12 +18,10 @@ const HistoryPurchaseComponent = () => {
     const [cartsInOrders, setCartsInOrder] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectOrder, setSelectOrder] = useState(null);
-
     const [provinceName, setProvinceName] = useState('');
     const [districtName, setDistrictName] = useState('');
     const [wardName, setWardName] = useState('');
     const [searchKeyState, setSearchKeyState] = useState('')
-
 
     const userOrders = orders.filter(order => order.fullName === userInfo.fullName && order.email === userInfo.email && order.phoneNumber === userInfo.phoneNumber);
 
@@ -86,25 +86,22 @@ const HistoryPurchaseComponent = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-    const handleDelete = async (id) => {
-        try {
-            await dispatch(actDeleteOderById(id)).unwrap();
-            message.success("Đơn hàng đã được xóa thành công!");
-            dispatch(actFetchAllOrders());
-        } catch (error) {
-            message.error("Xóa đơn hàng thất bại!");
+
+    const handleRepurchase = () => {
+        if (selectOrder) {
+            const productsToRepurchase = selectOrder.cartItems.map(cart => ({
+                id: cart.id,
+                productImg: cart.productImg,
+                weight: cart.weight,
+                price: cart.price,
+                nameProduct: cart.nameProduct,
+                quantity: cart.quantity,
+            }));
+            dispatch(actRePuchase(productsToRepurchase))
+            navigate(ROUTES.CHECKOUT_PAGE)
+            setIsModalOpen(false);
         }
-    };
-    const confirmDelete = (id) => {
-        Modal.confirm({
-            title: 'Bạn có chắc chắn muốn xóa đơn hàng này?',
-            content: 'Hành động này không thể hoàn tác.',
-            okText: 'Xóa',
-            okType: 'danger',
-            cancelText: 'Hủy',
-            onOk: () => handleDelete(id),
-        });
-    };
+    }
 
     useEffect(() => {
         dispatch(actFetchAllOrders({
@@ -112,6 +109,8 @@ const HistoryPurchaseComponent = () => {
             _limit: pagination.limitPerPage,
             q: searchKeyState,
             phoneNumber: userInfo.phoneNumber,
+            _order: "desc",
+            _sort: "checkoutDate"
         }
 
         ))
@@ -154,14 +153,6 @@ const HistoryPurchaseComponent = () => {
             render: (_, record) => (
                 <div>
                     <Button style={{ paddingRight: "30px" }} type="link" icon={<EyeOutlined />} onClick={() => showModal(record.id)}>Xem chi tiết</Button>
-                    <Button
-                        type="link"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => confirmDelete(record.id)}
-                    >
-                        Xóa
-                    </Button>
                 </div>
             ),
         },
@@ -177,6 +168,8 @@ const HistoryPurchaseComponent = () => {
             _limit: pagination.limitPerPage,
             q: searchKeyState,
             phoneNumber: userInfo.phoneNumber,
+            _order: "desc",
+            _sort: "checkoutDate"
         }))
         dispatch(setNewPage(1))
     }
@@ -187,17 +180,24 @@ const HistoryPurchaseComponent = () => {
             _limit: pagination.limitPerPage,
             q: searchKeyState,
             phoneNumber: userInfo.phoneNumber,
+            _order: "desc",
+            _sort: "checkoutDate"
         }))
     }
+    const formatToDDMMYYYY = (isoDateString) => {
+        const date = parseISO(isoDateString);
+        return format(date, 'dd/MM/yyyy');
+    };
     const dataSource = userOrders.map(order => ({
         key: order.id,
         orderNumber: order.id,
-        checkoutDate: order.checkoutDate,
+        checkoutDate: formatToDDMMYYYY(order?.checkoutDate),
         fullName: order.fullName,
         phoneNumber: order.phoneNumber,
         address: order.streetAddress + " " + wardName + " " + districtName + " " + provinceName,
         id: order.id,
     }));
+
     const renderCart = (_cart) => {
         return _cart.map((cart) => {
             const formatPrice = (price) => {
@@ -222,7 +222,6 @@ const HistoryPurchaseComponent = () => {
             );
         });
     };
-
 
     return (
         <div className="purchase-history-wrapper">
@@ -264,18 +263,22 @@ const HistoryPurchaseComponent = () => {
                 onOk={handleOk}
                 onCancel={handleCancel}
                 footer={[
+                    <div key="empty"></div>,
+                    <Button key="repurchase" type="primary" onClick={handleRepurchase}>Đặt lại</Button>,
                     <Button key="submit" type="primary" onClick={handleOk}>
                         OK
-                    </Button>,
+                    </Button>
                 ]}
             >
                 <div className='table-infor'>
                     <p><strong>Đơn hàng:</strong> {selectOrder?.id}</p>
-                    <p><strong>Ngày mua:</strong> {selectOrder?.checkoutDate}</p>
+                    <p><strong>Ngày mua:</strong> {selectOrder ? formatToDDMMYYYY(selectOrder.checkoutDate) : ''}</p>
                     <p><strong>Họ tên:</strong> {selectOrder?.fullName}</p>
                     <p><strong>Email:</strong> {selectOrder?.email}</p>
                     <p><strong>Số điện thoại:</strong> {selectOrder?.phoneNumber}</p>
-                    <p><strong>Tổng thanh toán:</strong> {selectOrder?.total}K VND</p>
+                    <p><strong>Tổng:</strong> {selectOrder?.total}K VND</p>
+                    <p><strong>Giảm giá:</strong> {selectOrder?.discount}%</p>
+                    <p><strong>Tổng thanh toán:</strong> {selectOrder?.totalDiscount}K VND</p>
                     <p><strong>Phương thức thanh toán:</strong> {selectOrder?.paymentMethod}</p>
                     <p><strong>Địa chỉ ship:</strong> {selectOrder?.streetAddress} {wardName} {districtName} {provinceName}</p>
                     <p><strong>Địa chỉ ship khác:</strong> {selectOrder?.anotherAddress}</p>

@@ -25,7 +25,8 @@ const TestimonialComponent = () => {
             _page: newPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
-            _order: sortOrder
+            _order: sortOrder,
+            productId: null
         }));
     };
     useEffect(() => {
@@ -35,6 +36,7 @@ const TestimonialComponent = () => {
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
+            productId: null
         }))
         return () => {
             dispatch(setNewPage(currentPage))
@@ -51,13 +53,21 @@ const TestimonialComponent = () => {
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
+            productId: null
         }))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    useEffect(() => {
+        dispatch(actFetchAllComments())
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    const filterCommentByProductId = comments.filter(comment =>
+        comment.productId === null
+    )
 
     const renderComments = (_comment) => {
         return _comment.map((comment) => {
-            const { fullName, comments, rating, createdAt } = comment;
+            const { fullName, comments, rating, createdAt, phoneNumber } = comment;
             const date = format(createdAt, 'dd/MM/yyyy HH:mm')
 
             const stars = [];
@@ -75,15 +85,16 @@ const TestimonialComponent = () => {
                     <div className="position-relative">
                         <i className="fa fa-quote-right fa-2x text-secondary position-absolute" style={{ right: 0, bottom: "30px" }}></i>
                         <div className="mb-4 pb-4 border-bottom border-secondary">
-                            <h5 className="mb-0">Nhận xét: "{comments}" </h5>
+                            <h5 className="mb-0">Nhận xét: " <b>{comments}</b> " </h5>
                         </div>
                         <div className="d-flex align-items-center flex-nowrap">
                             <div className="bg-secondary rounded">
                                 <img src="/img/avatar.jpg" className="img-fluid rounded" style={{ width: "100px", height: "100px" }} alt="" />
                             </div>
                             <div className="ms-4 d-block">
-                                <p className="m-0 pb-3">{date}</p>
-                                <h4 className="text-dark">{fullName}</h4>
+                                <p className="m-0 pb-3">Ngày: {date}</p>
+                                <h5 className="text-dark">Họ tên: {fullName}</h5>
+                                <h6 className="text-dark">Số điện thoại: {phoneNumber}</h6>
                                 <div className="d-flex pe-5">
                                     {stars}
                                 </div>
@@ -110,7 +121,7 @@ const TestimonialComponent = () => {
                         <Alert message="Error" description="Unable to load comments." type="error" />
                     ) : (
                         <div>
-                            {renderComments(comments)}
+                            {renderComments(filterCommentByProductId)}
 
                             <Pagination
                                 current={pagination.currentPage}

@@ -23,6 +23,7 @@ import AccountPage from "./pages/AccountPage";
 import WishListPage from "./pages/WishListPage";
 import HistoryPurchasePage from "./pages/HistoryPurchasePage";
 import ChangePassPage from "./pages/ChangePassPage";
+import BestSellerPage from "./pages/BestSellerPage";
 
 function App() {
 
@@ -41,10 +42,10 @@ function App() {
             <Route path={ROUTES.SHOP_PAGE} element={<ShopPage></ShopPage>}></Route>
             <Route path={ROUTES.CONTACT_PAGE} element={<ContactPage></ContactPage>}></Route>
             <Route path={ROUTES.DRY_PAGE} element={<DryPage></DryPage>}></Route>
+            <Route path={ROUTES.BESTSELLER_PAGE} element={<BestSellerPage></BestSellerPage>}></Route>
             <Route path={ROUTES.WET_PAGE} element={<WetPage></WetPage>}></Route>
             <Route path={ROUTES.LOGIN_PAGE} element={<LoginPage></LoginPage>}></Route>
             <Route path={ROUTES.REGISTER_PAGE} element={<RegisterPage></RegisterPage>}></Route>
-
             <Route path={ROUTES.TERMOFUSE_PAGE} element={<TermOfUsePage></TermOfUsePage>}></Route>
             <Route path={ROUTES.SALENREFUND_PAGE} element={<SalenRefundPage></SalenRefundPage>}></Route>
             <Route path={ROUTES.PRIVACYPOLICY_PAGE} element={<PrivacyPolicyPage></PrivacyPolicyPage>}></Route>

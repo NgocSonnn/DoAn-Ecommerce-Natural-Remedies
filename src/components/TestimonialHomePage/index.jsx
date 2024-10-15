@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import './style.scss'
 import { format } from 'date-fns'
 import { useDispatch, useSelector } from 'react-redux'
-import { Pagination, Spin, Alert, Form, Input, Button, Rate, Row, Col } from "antd";
+import { Pagination, Spin, Alert, Form, Input, Button, Rate, Row, Col, Modal } from "antd";
 import { actAddComment, actFetchAllComments, setNewPage } from '../../redux/features/comment/commentSlice';
 import { useSearchParams } from 'react-router-dom';
 
@@ -13,19 +13,31 @@ const TestimonialHomePage = () => {
     const isLoading = useSelector((state) => state.comment.isLoading);
     const errors = useSelector((state) => state.comment.errors);
     const dispatch = useDispatch()
-
-    const [form] = Form.useForm();
-
+    const [form] = Form.useForm()
     const [searchParams, setSearchParams] = useSearchParams();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [anonymous, setAnonymous] = useState(false);
 
-    const onFinish = (values) => {
-        const updatedValues = {
-            ...values,
-            createdAt: new Date().toISOString()
-        };
-        dispatch(actAddComment(updatedValues))
-        form.resetFields();
+    const onFinish = () => {
+        setIsModalVisible(true);
     };
+    const handleModalOk = (values) => {
+        const updatedValues = {
+            productId: null,
+            ...values,
+            fullName: anonymous ? 'Ẩn danh' : values.fullName,
+            phoneNumber: anonymous ? 'Ẩn danh' : values.phoneNumber,
+            createdAt: new Date().toISOString(),
+        };
+        dispatch(actAddComment(updatedValues));
+        form.resetFields();
+        setIsModalVisible(false);
+    };
+
+    const handleModalCancel = () => {
+        setIsModalVisible(false);
+    };
+
 
     const handlePageChange = (newPage) => {
         dispatch(setNewPage(newPage));
@@ -38,7 +50,8 @@ const TestimonialHomePage = () => {
             _page: newPage,
             _limit: pagination.limitPerPage,
             _sort: sortField,
-            _order: sortOrder
+            _order: sortOrder,
+            productId: null
         }));
     };
     useEffect(() => {
@@ -48,6 +61,7 @@ const TestimonialHomePage = () => {
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
+            productId: null
         }))
         return () => {
             dispatch(setNewPage(currentPage))
@@ -64,9 +78,17 @@ const TestimonialHomePage = () => {
             _limit: pagination.limitPerPage,
             _sort: sortField,
             _order: sortOrder,
+            productId: null
         }))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    useEffect(() => {
+        dispatch(actFetchAllComments())
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    const filterCommentByProductId = comments.filter(comment =>
+        comment.productId === null
+    )
 
     const renderComments = (_comment) => {
         return _comment.map((comment) => {
@@ -96,8 +118,8 @@ const TestimonialHomePage = () => {
                             </div>
                             <div className="ms-4 d-block">
                                 <p className="m-0 pb-3">Ngày: {date}</p>
-                                <h4 className="text-dark">Họ tên: {fullName}</h4>
-                                <p>Số điện thoại: {phoneNumber}</p>
+                                <h5 className="text-dark">Họ tên: {fullName}</h5>
+                                <h6 className="text-dark">Số điện thoại: {phoneNumber}</h6>
                                 <div className="d-flex pe-5">
                                     {stars}
                                 </div>
@@ -123,7 +145,7 @@ const TestimonialHomePage = () => {
                         <Alert message="Error" description="Unable to load comments." type="error" />
                     ) : (
                         <div>
-                            {renderComments(comments)}
+                            {renderComments(filterCommentByProductId)}
 
                             <Pagination
                                 current={pagination.currentPage}
@@ -196,6 +218,23 @@ const TestimonialHomePage = () => {
                     </Form>
                 </div>
             </div>
+            <Modal
+                className='modal-testimonial'
+                title="Bạn có muốn ẩn danh không?"
+                open={isModalVisible}
+                onOk={() => handleModalOk(form.getFieldsValue())}
+                onCancel={handleModalCancel}
+                footer={[
+                    <Button key="back" onClick={() => { setAnonymous(false); handleModalOk(form.getFieldsValue()); }}>
+                        Không
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={() => { setAnonymous(true); handleModalOk(form.getFieldsValue()); }}>
+                        Có, ẩn danh
+                    </Button>
+                ]}
+            >
+                <h4>Bạn có chắc chắn muốn gửi ý kiến của bạn dưới dạng ẩn danh không?</h4>
+            </Modal>
         </div>
     )
 }

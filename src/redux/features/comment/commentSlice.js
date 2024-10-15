@@ -13,14 +13,14 @@ const initialState = {
         total: 5,
     },
     sortField: "createdAt",
-    sortOrder: "desc",
+    sortOrder: "asc",
 
 };
 
 export const actFetchAllComments = createAsyncThunk(
     "comment/actFetchAllComments",
     async (params = {}) => {
-        const response = await commentApis.getAllComments(params);
+        const response = await commentApis.getAllComments({ ...params });
         return {
             data: response.data,
             total: response.headers.get("X-Total-Count"),
@@ -32,14 +32,6 @@ export const actAddComment = createAsyncThunk(
     "comment/actAddComment",
     async (comment) => {
         const response = await commentApis.addComment(comment);
-        return response;
-    }
-);
-
-export const actEditCommentById = createAsyncThunk(
-    "comment/actEditCommentById",
-    async ({ id, commentUpdate }) => {
-        const response = await commentApis.editCommentById(id, commentUpdate);
         return response;
     }
 );
@@ -88,18 +80,6 @@ const commentSlice = createSlice({
             state.comment = action.payload;
             state.comments = [action.payload, ...state.comments];
             message.success("Nhận xét thành công!");
-        });
-
-        builder.addCase(actEditCommentById.pending, (state, action) => {
-            state.isLoading = true;
-        });
-        builder.addCase(actEditCommentById.rejected, (state, action) => {
-            state.isLoading = false;
-            state.errors = {};
-            message.error("Cập nhật nhật xét thất bại!");
-        });
-        builder.addCase(actEditCommentById.fulfilled, (state, action) => {
-            message.success("Cập nhật nhận xét thành công!");
         });
     },
 });

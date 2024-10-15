@@ -8,6 +8,7 @@ import { message } from 'antd'
 import emailjs from '@emailjs/browser'
 import { actAddOrder } from '../../redux/features/order/orderSlice'
 import { actUpdateProductPurchases } from '../../redux/features/product/productSlice'
+import { setDiscountAmount } from '../../redux/features/coupons/couponsSlice'
 
 export const CheckOutComponent = () => {
     const cartItems = useSelector(state => state.carts.carts)
@@ -21,6 +22,7 @@ export const CheckOutComponent = () => {
     const [paymentMethod, setPaymentMethod] = useState('')
     const [showAnotherAddress, setShowAnotherAddress] = useState(false);
     const [checkoutDate, setCheckoutDate] = useState(new Date());
+    const { discount } = useSelector((state) => state.coupons);
 
 
     const dispatch = useDispatch()
@@ -75,10 +77,17 @@ export const CheckOutComponent = () => {
     const calculateTotal = useCallback(() =>
         cartItems.reduce((total, item) => total + item.price * item.quantity, 0), [cartItems]
     )
+    const calculateTotalDisCount = useCallback(() => {
+        const total = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+        return (total - ((total * discount) / 100))
+    }, [cartItems, discount]
+    )
     const [total, setTotal] = useState(calculateTotal())
+    const [totalDiscount, setTotalDiscount] = useState(calculateTotalDisCount())
     useEffect(() => {
         setTotal(calculateTotal());
-    }, [cartItems, calculateTotal]);
+        setTotalDiscount(calculateTotalDisCount());
+    }, [cartItems, calculateTotal, calculateTotalDisCount]);
 
 
     const formatPrice = (price) => {
@@ -88,7 +97,7 @@ export const CheckOutComponent = () => {
 
     const formatCartItemsForEmail = (items) => {
         return items.map(item =>
-            `Tên sản phẩm: ${item.nameProduct}, Giá: ${formatPrice(item.price)}000 VNĐ, Trọng lượng: ${item.weight}g, Số lượng: ${item.quantity}`
+            `Tên sản phẩm: ${item.nameProduct}, Giá: ${formatPrice(item.price)}000 VNĐ, Trọng lượng: ${item.weight}, Số lượng: ${item.quantity}`
         ).join('\n');
     };
     const sendEmail = (data) => {
@@ -124,6 +133,8 @@ export const CheckOutComponent = () => {
             anotherAddress: anotherAddress,
             cartItems: formattedCartItems,
             total,
+            discount,
+            totalDiscount,
             paymentMethod,
             showAnotherAddress,
             checkoutDate: formatToDDMMYYYY(checkoutDate.toISOString())
@@ -141,9 +152,11 @@ export const CheckOutComponent = () => {
             anotherAddress: anotherAddress,
             cartItems,
             total,
+            discount,
+            totalDiscount,
             paymentMethod,
             showAnotherAddress,
-            checkoutDate: formatToDDMMYYYY(checkoutDate.toISOString())
+            checkoutDate: checkoutDate
         }
 
         if (cartItems.length === 0) {
@@ -158,10 +171,8 @@ export const CheckOutComponent = () => {
             dispatch(actUpdateProductPurchases(cartItems));
             sendEmail(checkoutData)
             dispatch(actClearCart());
+            dispatch(setDiscountAmount(null))
             // Reset form fields
-            setProvinceName('');
-            setDistrictName('');
-            setWardName('');
             setAnotherAddress('');
             setPaymentMethod('');
             setShowAnotherAddress(false);
@@ -283,8 +294,10 @@ export const CheckOutComponent = () => {
                                         {renderCheckOutCart(carts)}
                                         <tr>
                                             <th scope="row">
+                                                Tạm tính: {formatPrice(total)}K VNĐ
                                             </th>
                                             <td className="py-5">
+                                                Giảm giá: {discount}%
                                             </td>
                                             <td className="py-5"></td>
                                             <td className="py-5">
@@ -292,7 +305,7 @@ export const CheckOutComponent = () => {
                                             </td>
                                             <td style={{ textAlign: "center" }} className="py-5">
                                                 <div className="py-3 border-bottom border-top">
-                                                    <p className="mb-0 m-0 text-dark"><b>{formatPrice(total)}K VNĐ</b></p>
+                                                    <p className="mb-0 m-0 text-dark"><b>{formatPrice(totalDiscount)}K VNĐ</b></p>
                                                 </div>
                                             </td>
                                         </tr>

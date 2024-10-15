@@ -78,10 +78,8 @@ const wishListSlice = createSlice({
                     && item.wishList.productId === product.wishList.productId
             );
             if (existedItemIndex) {
-                message.error("Bạn đã thêm sản phẩm này vào danh sách yêu thích!");
             } else {
                 state.wishLists.push(product);
-                message.success("Sản phẩm đã được thêm vào danh sách yêu thích!");
             }
         });
         builder.addCase(actFetchWishListById.pending, (state, action) => {

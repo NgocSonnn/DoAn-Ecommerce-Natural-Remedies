@@ -33,3 +33,41 @@
     }
 
 }
+
+.modal-testimonial {
+    width: 900px !important;
+
+    .ant-modal-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #81c408;
+        text-align: center;
+        padding: 10px;
+    }
+
+
+    .ant-modal-body {
+        padding: 24px;
+
+
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    .ant-modal-footer {
+        display: flex;
+        justify-content: space-between;
+
+        button {
+            color: white;
+            background-color: #81c408;
+        }
+
+        button:hover {
+            background-color: #ffb524 !important;
+        }
+    }
+}

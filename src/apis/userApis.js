@@ -22,5 +22,15 @@ export const userApis = {
             userUpdate
         );
     },
+    resetPassword: async (userId) => {
+        const newPassword = {
+            password: "123456",
+            confirmPassword: "123456"
+        }
+        const response = await axios.patch(`${process.env.REACT_APP_BE_URL}users/${userId}`,
+            newPassword
+        )
+        return response.data
+    }
 
 }
