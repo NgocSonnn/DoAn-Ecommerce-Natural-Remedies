@@ -1311,78 +1311,6 @@
   "wishLists": [
     {
       "wishList": {
-        "productId": 56,
-        "productImg": "/img/tinh-bot-nghe-1.jpg",
-        "weight": "100g",
-        "price": 150,
-        "nameProduct": "Tinh Bột Nghệ",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 1
-    },
-    {
-      "wishList": {
-        "productId": 62,
-        "productImg": "/img/nam-linhchi-kho-donggoi-1.jpg",
-        "weight": "100g",
-        "price": 300,
-        "nameProduct": "Nấm Linh Chi Khô",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 3
-    },
-    {
-      "wishList": {
-        "productId": 27,
-        "productImg": "/img/chuoi-hot-kho-1.jpg",
-        "weight": "100g",
-        "price": 85,
-        "nameProduct": "Chuối Hột",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 4
-    },
-    {
-      "wishList": {
-        "productId": 1,
-        "productImg": "/img/bo-cong-anh.jpg",
-        "weight": "100g",
-        "price": 80,
-        "nameProduct": "Bồ Công Anh",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 5
-    },
-    {
-      "wishList": {
-        "productId": 5,
-        "productImg": "/img/trai-nhau-kho.jpg",
-        "weight": "100g",
-        "price": 110,
-        "nameProduct": "Trái Nhàu Khô",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 6
-    },
-    {
-      "wishList": {
-        "productId": 2,
-        "productImg": "/img/bot-san-day.jpg",
-        "weight": "100g",
-        "price": 50,
-        "nameProduct": "Bột Sắn Dây",
-        "quantity": 1
-      },
-      "userId": 1,
-      "id": 7
-    },
-    {
-      "wishList": {
         "productId": 62,
         "productImg": "/img/nam-linhchi-kho-donggoi-1.jpg",
         "weight": "100g",
@@ -1500,6 +1428,66 @@
       },
       "userId": 2,
       "id": 19
+    },
+    {
+      "wishList": {
+        "productId": 8,
+        "productImg": "/img/cay-la-gan.jpg",
+        "weight": "1kg",
+        "price": 75,
+        "nameProduct": "Cây Lá Gan",
+        "quantity": 1
+      },
+      "userId": 1,
+      "id": 24
+    },
+    {
+      "wishList": {
+        "productId": 7,
+        "productImg": "/img/mat-ong-1.jpg",
+        "weight": "1lít",
+        "price": 500,
+        "nameProduct": "Mật Ong Rừng",
+        "quantity": 1
+      },
+      "userId": 1,
+      "id": 25
+    },
+    {
+      "wishList": {
+        "productId": 35,
+        "productImg": "/img/dinh-lang-tuoi.jpg",
+        "weight": "1kg",
+        "price": 120,
+        "nameProduct": "Đinh Lăng Tươi",
+        "quantity": 1
+      },
+      "userId": 1,
+      "id": 26
+    },
+    {
+      "wishList": {
+        "productId": 36,
+        "productImg": "/img/ruou-linh-chi.jpg",
+        "weight": "1lít",
+        "price": 350,
+        "nameProduct": "Rượu Nấm Lim Xanh",
+        "quantity": 1
+      },
+      "userId": 1,
+      "id": 27
+    },
+    {
+      "wishList": {
+        "productId": 2,
+        "productImg": "/img/bot-san-day.jpg",
+        "weight": "100g",
+        "price": 50,
+        "nameProduct": "Bột Sắn Dây",
+        "quantity": 1
+      },
+      "userId": 1,
+      "id": 28
     }
   ],
   "coupons": [

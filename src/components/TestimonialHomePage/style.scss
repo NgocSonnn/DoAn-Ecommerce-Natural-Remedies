@@ -37,6 +37,10 @@
 .modal-testimonial {
     width: 900px !important;
 
+    .ant-modal-content {
+        margin-top: 60px;
+    }
+
     .ant-modal-title {
         font-size: 24px;
         font-weight: bold;
